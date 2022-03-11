@@ -6,7 +6,9 @@ import com.example.finnapp.api.apiResponse.BaseApiResponse
 import com.example.finnapp.api.model.company.CompanyProfile
 import com.example.finnapp.api.model.news.News
 import com.example.finnapp.api.model.stock.Stock
+import com.example.finnapp.api.model.stock.StockMetric
 import com.example.finnapp.api.model.stock.StockPriceQuote
+import com.example.finnapp.api.model.stock.StockQuarterlyIncome
 import javax.inject.Inject
 
 class ApiFinnRepository @Inject constructor(
@@ -28,6 +30,14 @@ class ApiFinnRepository @Inject constructor(
     ) }
 
     suspend fun getStockPriceQuote(symbol: String):NetworkResult<StockPriceQuote> = safeApiCall { stockApi.getStockPriceQuote(
+        symbol = symbol
+    ) }
+
+    suspend fun getStockMetric(symbol: String):NetworkResult<StockMetric> = safeApiCall { stockApi.getStockMetric(
+        symbol = symbol
+    ) }
+
+    suspend fun getStockQuarterlyIncome(symbol: String):NetworkResult<List<StockQuarterlyIncome>> = safeApiCall { stockApi.getStockQuarterlyIncome(
         symbol = symbol
     ) }
 }

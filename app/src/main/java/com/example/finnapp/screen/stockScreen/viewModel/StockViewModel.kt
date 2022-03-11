@@ -6,7 +6,9 @@ import com.example.finnapp.api.NetworkResult
 import com.example.finnapp.api.model.company.CompanyProfile
 import com.example.finnapp.api.model.news.News
 import com.example.finnapp.api.model.stock.Stock
+import com.example.finnapp.api.model.stock.StockMetric
 import com.example.finnapp.api.model.stock.StockPriceQuote
+import com.example.finnapp.api.model.stock.StockQuarterlyIncome
 import com.example.finnapp.api.repository.ApiFinnRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -32,6 +34,16 @@ class StockViewModel @Inject constructor(
     val responseCompanyProfile:StateFlow<NetworkResult<CompanyProfile>> =
         _responseCompanyProfile.asStateFlow()
 
+    private val _responseStockMetric:MutableStateFlow<NetworkResult<StockMetric>> =
+        MutableStateFlow(NetworkResult.Loading())
+    val responseStockMetric:StateFlow<NetworkResult<StockMetric>> =
+        _responseStockMetric.asStateFlow()
+
+    private val _responseStockQuarterlyIncome:MutableStateFlow<NetworkResult<List<StockQuarterlyIncome>>> =
+        MutableStateFlow(NetworkResult.Loading())
+    val responseStockQuarterlyIncome:StateFlow<NetworkResult<List<StockQuarterlyIncome>>> =
+        _responseStockQuarterlyIncome.asStateFlow()
+
     fun getStockSymbol(){
         viewModelScope.launch {
             _responseStock.value = apiFinnRepository.getStockSymbol()
@@ -53,6 +65,18 @@ class StockViewModel @Inject constructor(
     fun getStockPriceQuote(symbol: String){
         viewModelScope.launch {
             _responseStockPriceQuote.value = apiFinnRepository.getStockPriceQuote(symbol = symbol)
+        }
+    }
+
+    fun getStockMetric(symbol: String){
+        viewModelScope.launch {
+            _responseStockMetric.value = apiFinnRepository.getStockMetric(symbol = symbol)
+        }
+    }
+
+    fun getStockQuarterlyIncome(symbol: String){
+        viewModelScope.launch {
+            _responseStockQuarterlyIncome.value = apiFinnRepository.getStockQuarterlyIncome(symbol = symbol)
         }
     }
 }

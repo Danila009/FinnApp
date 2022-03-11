@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
@@ -22,6 +23,9 @@ import coil.compose.SubcomposeAsyncImageContent
 import com.example.finnapp.api.NetworkResult
 import com.example.finnapp.api.model.company.CompanyProfile
 import com.example.finnapp.api.model.news.News
+import com.example.finnapp.api.model.stock.StockMetric
+import com.example.finnapp.api.model.stock.StockPriceQuote
+import com.example.finnapp.api.model.stock.StockQuarterlyIncome
 import com.example.finnapp.di.component.DaggerAppComponent
 import com.example.finnapp.ui.theme.primaryBackground
 import com.example.finnapp.ui.theme.secondaryBackground
@@ -42,6 +46,15 @@ fun CompanyProfileScreen(
     val newsCompany:MutableState<NetworkResult<List<News>>> =
         remember { mutableStateOf(NetworkResult.Loading()) }
 
+    var stockMetric:NetworkResult<StockMetric> by
+        remember { mutableStateOf(NetworkResult.Loading()) }
+
+    var stockQuarterlyIncome:NetworkResult<List<StockQuarterlyIncome>> by
+        remember { mutableStateOf(NetworkResult.Loading()) }
+
+    var stockPriceQuote:NetworkResult<StockPriceQuote> by
+    remember { mutableStateOf(NetworkResult.Loading()) }
+
     LaunchedEffect(key1 = Unit, block = {
         val stockViewModel = DaggerAppComponent.create()
             .stockViewModel()
@@ -54,6 +67,21 @@ fun CompanyProfileScreen(
         stockViewModel.getNewsCompany(symbol)
         stockViewModel.responseNewsCompany.onEach {
             newsCompany.value = it
+        }.launchWhenCreated(lifecycleScope)
+
+        stockViewModel.getStockMetric(symbol)
+        stockViewModel.responseStockMetric.onEach {
+            stockMetric = it
+        }.launchWhenCreated(lifecycleScope)
+
+        stockViewModel.getStockQuarterlyIncome(symbol)
+        stockViewModel.responseStockQuarterlyIncome.onEach {
+            stockQuarterlyIncome = it
+        }.launchWhenCreated(lifecycleScope)
+
+        stockViewModel.getStockPriceQuote(symbol)
+        stockViewModel.responseStockPriceQuote.onEach {
+            stockPriceQuote = it
         }.launchWhenCreated(lifecycleScope)
     })
 
@@ -157,6 +185,416 @@ fun CompanyProfileScreen(
                                         )
                                     }
 
+                                    stockPriceQuote.data?.let {
+                                        Column(
+                                            modifier = Modifier.fillMaxWidth()
+                                        ) {
+                                            Divider()
+                                            Text(
+                                                text = "Stock price:",
+                                                modifier = Modifier.padding(5.dp)
+                                            )
+                                        }
+                                    }
+
+                                    when(stockPriceQuote){
+                                        is NetworkResult.Loading -> {
+                                            Column(
+                                                modifier = Modifier.fillMaxSize(),
+                                                horizontalAlignment = Alignment.CenterHorizontally,
+                                                verticalArrangement = Arrangement.Center
+                                            ) {
+                                                CircularProgressIndicator(
+                                                    modifier = Modifier.padding(5.dp),
+                                                    color = secondaryBackground
+                                                )
+                                            }
+                                        }
+                                        is NetworkResult.Error -> {
+                                            Column(
+                                                modifier = Modifier.fillMaxSize(),
+                                                horizontalAlignment = Alignment.CenterHorizontally,
+                                                verticalArrangement = Arrangement.Center
+                                            ) {
+                                                Text(
+                                                    text = stockQuarterlyIncome.message.toString(),
+                                                    color = Color.Red
+                                                )
+                                            }
+                                        }
+                                        is NetworkResult.Success -> {
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.SpaceBetween
+                                            ) {
+                                                Text(
+                                                    text = "Current price",
+                                                    modifier = Modifier.padding(5.dp)
+                                                )
+
+                                                Text(
+                                                    text = stockPriceQuote.data?.c.toString(),
+                                                    modifier = Modifier.padding(5.dp)
+                                                )
+                                            }
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.SpaceBetween
+                                            ) {
+                                                Text(
+                                                    text = "High price of the day",
+                                                    modifier = Modifier.padding(5.dp)
+                                                )
+
+                                                Text(
+                                                    text = stockPriceQuote.data?.h.toString(),
+                                                    modifier = Modifier.padding(5.dp)
+                                                )
+                                            }
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.SpaceBetween
+                                            ) {
+                                                Text(
+                                                    text = "Low price of the day",
+                                                    modifier = Modifier.padding(5.dp)
+                                                )
+
+                                                Text(
+                                                    text = stockPriceQuote.data?.l.toString(),
+                                                    modifier = Modifier.padding(5.dp)
+                                                )
+                                            }
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.SpaceBetween
+                                            ) {
+                                                Text(
+                                                    text = "Open price of the day",
+                                                    modifier = Modifier.padding(5.dp)
+                                                )
+
+                                                Text(
+                                                    text = stockPriceQuote.data?.o.toString(),
+                                                    modifier = Modifier.padding(5.dp)
+                                                )
+                                            }
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.SpaceBetween
+                                            ) {
+                                                Text(
+                                                    text = "Previous close price",
+                                                    modifier = Modifier.padding(5.dp)
+                                                )
+
+                                                Text(
+                                                    text = stockPriceQuote.data?.pc.toString(),
+                                                    modifier = Modifier.padding(5.dp)
+                                                )
+                                            }
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.SpaceBetween
+                                            ) {
+                                                Text(
+                                                    text = "Change",
+                                                    modifier = Modifier.padding(5.dp)
+                                                )
+
+                                                Text(
+                                                    text = stockPriceQuote.data?.t.toString(),
+                                                    modifier = Modifier.padding(5.dp)
+                                                )
+                                            }
+                                        }
+                                    }
+
+                                    stockQuarterlyIncome.data?.let {
+                                        Column(
+                                            modifier = Modifier.fillMaxWidth()
+                                        ) {
+                                            Divider()
+                                            Text(
+                                                text = "Quarterly income:",
+                                                modifier = Modifier.padding(5.dp)
+                                            )
+                                        }
+                                    }
+
+                                    when(stockQuarterlyIncome){
+                                        is NetworkResult.Loading -> {
+                                            Column(
+                                                modifier = Modifier.fillMaxSize(),
+                                                horizontalAlignment = Alignment.CenterHorizontally,
+                                                verticalArrangement = Arrangement.Center
+                                            ) {
+                                                CircularProgressIndicator(
+                                                    modifier = Modifier.padding(5.dp),
+                                                    color = secondaryBackground
+                                                )
+                                            }
+                                        }
+                                        is NetworkResult.Error -> {
+                                            Column(
+                                                modifier = Modifier.fillMaxSize(),
+                                                horizontalAlignment = Alignment.CenterHorizontally,
+                                                verticalArrangement = Arrangement.Center
+                                            ) {
+                                                Text(
+                                                    text = stockQuarterlyIncome.message.toString(),
+                                                    color = Color.Red
+                                                )
+                                            }
+                                        }
+                                        is NetworkResult.Success -> {
+                                            LazyRow(content = {
+                                                items(stockQuarterlyIncome.data!!){ item ->
+                                                    Card(
+                                                        modifier = Modifier
+                                                            .padding(5.dp),
+                                                        shape = AbsoluteRoundedCornerShape(10.dp),
+                                                        elevation = 8.dp,
+                                                        backgroundColor = primaryBackground
+                                                    ) {
+                                                        Column(
+                                                            modifier = Modifier.fillMaxWidth()
+                                                        ) {
+                                                            Text(
+                                                                text = item.actual.toString(),
+                                                                modifier = Modifier.padding(5.dp)
+                                                            )
+
+                                                            Text(
+                                                                text = item.estimate.toString(),
+                                                                modifier = Modifier.padding(5.dp)
+                                                            )
+
+                                                            Text(
+                                                                text = item.period,
+                                                                modifier = Modifier.padding(5.dp)
+                                                            )
+                                                        }
+                                                    }
+                                                }
+                                            })
+                                        }
+                                    }
+
+                                    when(stockMetric){
+                                        is NetworkResult.Loading -> {
+                                            Column(
+                                                modifier = Modifier.fillMaxSize(),
+                                                horizontalAlignment = Alignment.CenterHorizontally,
+                                                verticalArrangement = Arrangement.Center
+                                            ) {
+                                                CircularProgressIndicator(
+                                                    modifier = Modifier.padding(5.dp),
+                                                    color = secondaryBackground
+                                                )
+                                            }
+                                        }
+                                        is NetworkResult.Error -> {
+                                            Column(
+                                                modifier = Modifier.fillMaxSize(),
+                                                horizontalAlignment = Alignment.CenterHorizontally,
+                                                verticalArrangement = Arrangement.Center
+                                            ) {
+                                                Text(
+                                                    text = stockMetric.message.toString(),
+                                                    color = Color.Red
+                                                )
+                                            }
+                                        }
+                                        is NetworkResult.Success -> {
+                                            Column {
+                                                Divider()
+                                                Text(
+                                                    text = "Metric:",
+                                                    modifier = Modifier.padding(5.dp),
+                                                    fontWeight = FontWeight.Bold
+                                                )
+
+                                                Row(
+                                                    modifier = Modifier.fillMaxWidth(),
+                                                    horizontalArrangement = Arrangement.SpaceBetween
+                                                ) {
+                                                    Text(
+                                                        text = "10 Day Average Trading Volumeval",
+                                                        modifier = Modifier.padding(5.dp)                                                    )
+
+                                                    Text(
+                                                        text = stockMetric.data?.metric?.a10DayAverageTradingVolumeval.toString(),
+                                                        modifier = Modifier.padding(5.dp)
+                                                    )
+                                                }
+
+                                                Row(
+                                                    modifier = Modifier.fillMaxWidth(),
+                                                    horizontalArrangement = Arrangement.SpaceBetween
+                                                ) {
+                                                    Text(
+                                                        text = "52 Week High",
+                                                        modifier = Modifier.padding(5.dp)                                                    )
+
+                                                    Text(
+                                                        text = stockMetric.data?.metric?.a52WeekHigh.toString(),
+                                                        modifier = Modifier.padding(5.dp)
+                                                    )
+                                                }
+
+                                                Row(
+                                                    modifier = Modifier.fillMaxWidth(),
+                                                    horizontalArrangement = Arrangement.SpaceBetween
+                                                ) {
+                                                    Text(
+                                                        text = "52 Week Low",
+                                                        modifier = Modifier.padding(5.dp)                                                    )
+
+                                                    Text(
+                                                        text = stockMetric.data?.metric?.a52WeekLow.toString(),
+                                                        modifier = Modifier.padding(5.dp)
+                                                    )
+                                                }
+
+                                                Row(
+                                                    modifier = Modifier.fillMaxWidth(),
+                                                    horizontalArrangement = Arrangement.SpaceBetween
+                                                ) {
+                                                    Text(
+                                                        text = "52 Week Low Date",
+                                                        modifier = Modifier.padding(5.dp)                                                    )
+
+                                                    Text(
+                                                        text = stockMetric.data?.metric?.a52WeekLowDate.toString(),
+                                                        modifier = Modifier.padding(5.dp)
+                                                    )
+                                                }
+
+                                                Row(
+                                                    modifier = Modifier.fillMaxWidth(),
+                                                    horizontalArrangement = Arrangement.SpaceBetween
+                                                ) {
+                                                    Text(
+                                                        text = "52 Week Price Return Daily",
+                                                        modifier = Modifier.padding(5.dp)                                                    )
+
+                                                    Text(
+                                                        text = stockMetric.data?.metric?.a52WeekPriceReturnDaily.toString(),
+                                                        modifier = Modifier.padding(5.dp)
+                                                    )
+                                                }
+
+                                                stockMetric.data?.series?.annual?.salesPerShare?.let {
+                                                    Divider()
+                                                    Text(
+                                                        text = "sales Per Share:",
+                                                        modifier = Modifier.padding(5.dp)
+                                                    )
+
+                                                    LazyRow(content = {
+                                                        items(it){ item ->
+                                                            Card(
+                                                                modifier = Modifier
+                                                                    .padding(5.dp),
+                                                                shape = AbsoluteRoundedCornerShape(10.dp),
+                                                                elevation = 8.dp,
+                                                                backgroundColor = primaryBackground
+                                                            ) {
+                                                                Column {
+                                                                    Text(
+                                                                        text = item.period,
+                                                                        modifier = Modifier.padding(
+                                                                            5.dp
+                                                                        )
+                                                                    )
+                                                                    Text(
+                                                                        text = item.v.toString(),
+                                                                        modifier = Modifier.padding(
+                                                                            5.dp
+                                                                        )
+                                                                    )
+                                                                }
+                                                            }
+                                                        }
+                                                    })
+                                                }
+
+                                                stockMetric.data?.series?.annual?.currentRatio?.let {
+                                                    Divider()
+                                                    Text(
+                                                        text = "Current ratio:",
+                                                        modifier = Modifier.padding(5.dp)
+                                                    )
+
+                                                    LazyRow(content = {
+                                                        items(it){ item ->
+                                                            Card(
+                                                                modifier = Modifier
+                                                                    .padding(5.dp),
+                                                                shape = AbsoluteRoundedCornerShape(10.dp),
+                                                                elevation = 8.dp,
+                                                                backgroundColor = primaryBackground
+                                                            ) {
+                                                                Column {
+                                                                    Text(
+                                                                        text = item.period,
+                                                                        modifier = Modifier.padding(
+                                                                            5.dp
+                                                                        )
+                                                                    )
+                                                                    Text(
+                                                                        text = item.v.toString(),
+                                                                        modifier = Modifier.padding(
+                                                                            5.dp
+                                                                        )
+                                                                    )
+                                                                }
+                                                            }
+                                                        }
+                                                    })
+                                                }
+
+                                                stockMetric.data?.series?.annual?.netMargin?.let {
+                                                    Divider()
+                                                    Text(
+                                                        text = "Net margin:",
+                                                        modifier = Modifier.padding(5.dp)
+                                                    )
+
+                                                    LazyRow(content = {
+                                                        items(it){ item ->
+                                                            Card(
+                                                                modifier = Modifier
+                                                                    .padding(5.dp),
+                                                                shape = AbsoluteRoundedCornerShape(10.dp),
+                                                                elevation = 8.dp,
+                                                                backgroundColor = primaryBackground
+                                                            ) {
+                                                                Column {
+                                                                    Text(
+                                                                        text = item.period,
+                                                                        modifier = Modifier.padding(
+                                                                            5.dp
+                                                                        )
+                                                                    )
+                                                                    Text(
+                                                                        text = item.v.toString(),
+                                                                        modifier = Modifier.padding(
+                                                                            5.dp
+                                                                        )
+                                                                    )
+                                                                }
+                                                            }
+                                                        }
+                                                    })
+                                                }
+
+                                                Divider()
+                                            }
+                                        }
+                                    }
+
                                     when(newsCompany.value){
                                         is NetworkResult.Loading -> {
                                             Column(
@@ -234,6 +672,8 @@ fun CompanyProfileScreen(
                                         }
                                     }
 
+                                    Divider()
+
                                     Row(
                                         modifier = Modifier.fillMaxWidth(),
                                         horizontalArrangement = Arrangement.End
@@ -246,6 +686,12 @@ fun CompanyProfileScreen(
                                 }
                             }
                         }
+                    }
+                    item {
+                        Spacer(modifier = Modifier
+                            .fillMaxWidth()
+                            .height(70.dp)
+                        )
                     }
                 })
             }

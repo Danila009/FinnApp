@@ -133,7 +133,12 @@ fun StockScreen(
                                         )
 
                                         when(stockPriceQuote.value){
-                                            is NetworkResult.Loading -> Unit
+                                            is NetworkResult.Loading -> {
+                                                CircularProgressIndicator(
+                                                    modifier = Modifier.padding(5.dp),
+                                                    color = secondaryBackground
+                                                )
+                                            }
                                             is NetworkResult.Error -> {
                                                 Text(
                                                     text = stockPriceQuote.value.message.toString(),

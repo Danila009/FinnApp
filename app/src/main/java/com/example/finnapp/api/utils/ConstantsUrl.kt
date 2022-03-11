@@ -10,4 +10,6 @@ object ConstantsUrl {
     const val NEWS_COMPANY_URL = "company-news"
     const val COMPANY_PROFILE_URL = "stock/profile2"
     const val STOCK_PRICE_QUOTE = "quote"
+    const val STOCK_METRIC = "stock/metric"
+    const val STOCK_QUARTERLY_INCOME = "stock/earnings"
 }
