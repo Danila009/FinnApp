@@ -5,6 +5,6 @@ object RouteAndArgumentsStock {
         const val STOCK_ROUTE = "home_route"
     }
     object Argument{
-
+        const val SYMBOL = "symbol"
     }
 }

@@ -6,5 +6,8 @@ object ConstantsUrl {
 
     const val STOCK_SYMBOL_URL = "stock/symbol"
     const val STOCK_LOOKUP_URL = "stock/symbol"
-    const val NEWS_URL = "news"
+    const val NEWS_MARKER_URL = "news"
+    const val NEWS_COMPANY_URL = "company-news"
+    const val COMPANY_PROFILE_URL = "stock/profile2"
+    const val STOCK_PRICE_QUOTE = "quote"
 }

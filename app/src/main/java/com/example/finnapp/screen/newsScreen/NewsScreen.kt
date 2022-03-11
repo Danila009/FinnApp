@@ -38,9 +38,9 @@ fun NewsScreen(
         val newsViewModel = DaggerAppComponent.create()
             .newsViewModel()
 
-        newsViewModel.getNews()
-        newsViewModel.responseNews.onEach {
-            news.value = it
+        newsViewModel.getMarkerNews()
+        newsViewModel.responseNewsMarker.onEach {
+            //news.value = it
         }.launchWhenCreated(lifecycleScope)
     })
 

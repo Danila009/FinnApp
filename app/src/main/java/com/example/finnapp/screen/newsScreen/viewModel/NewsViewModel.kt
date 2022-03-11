@@ -15,13 +15,13 @@ class NewsViewModel @Inject constructor(
     private val apiFinnRepository: ApiFinnRepository
 ):ViewModel() {
 
-    private val _responseNews:MutableStateFlow<NetworkResult<List<News>>> =
+    private val _responseNewsMarker:MutableStateFlow<NetworkResult<List<News>>> =
         MutableStateFlow(NetworkResult.Loading())
-    val responseNews:StateFlow<NetworkResult<List<News>>> = _responseNews.asStateFlow()
+    val responseNewsMarker:StateFlow<NetworkResult<List<News>>> = _responseNewsMarker.asStateFlow()
 
-    fun getNews(){
+    fun getMarkerNews(){
         viewModelScope.launch {
-            _responseNews.value = apiFinnRepository.getNews()
+            _responseNewsMarker.value = apiFinnRepository.getMarkerNews()
         }
     }
 }

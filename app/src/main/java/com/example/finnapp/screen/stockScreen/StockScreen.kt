@@ -1,5 +1,6 @@
 package com.example.finnapp.screen.stockScreen
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -14,7 +15,10 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import com.example.finnapp.api.NetworkResult
 import com.example.finnapp.api.model.stock.Stock
+import com.example.finnapp.api.model.stock.StockPriceQuote
 import com.example.finnapp.di.component.DaggerAppComponent
+import com.example.finnapp.navigation.navGraph.stockNavGraph.constants.RouteScreenStock
+import com.example.finnapp.screen.stockScreen.viewModel.StockViewModel
 import com.example.finnapp.ui.theme.primaryBackground
 import com.example.finnapp.ui.theme.secondaryBackground
 import com.example.finnapp.utils.Converters.launchWhenCreated
@@ -28,12 +32,14 @@ fun StockScreen(
     val stock:MutableState<NetworkResult<List<Stock>>> =
         remember { mutableStateOf(NetworkResult.Loading()) }
 
+    var stockViewModel:StockViewModel? = null
+
     LaunchedEffect(key1 = Unit, block = {
-        val stockViewModel = DaggerAppComponent.create()
+        stockViewModel = DaggerAppComponent.create()
             .stockViewModel()
 
-        stockViewModel.getStockSymbol()
-        stockViewModel.autorApi.onEach {
+        stockViewModel!!.getStockSymbol()
+        stockViewModel!!.responseStock.onEach {
             stock.value = it
         }.launchWhenCreated(lifecycleScope)
 
@@ -97,20 +103,51 @@ fun StockScreen(
                         }
                         is NetworkResult.Success -> {
                             items(stock.value.data!!){ item ->
+
+                                val stockPriceQuote:MutableState<NetworkResult<StockPriceQuote>> = remember {
+                                    mutableStateOf(NetworkResult.Loading())
+                                }
+
+                                stockViewModel?.let {
+                                    it.getStockPriceQuote(item.symbol)
+                                    it.responseStockPriceQuote.onEach { item ->
+                                        stockPriceQuote.value = item
+                                    }.launchWhenCreated(lifecycleScope)
+                                }
+
                                 Column {
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clickable {
+                                                navController.navigate(
+                                                    RouteScreenStock.CompanyProfile.argument(
+                                                        symbol = item.symbol
+                                                    )
+                                                )
+                                            },
                                     ) {
                                         Text(
                                             text = item.description,
                                             modifier = Modifier.padding(5.dp)
                                         )
 
-                                        Text(
-                                            text = item.displaySymbol,
-                                            modifier = Modifier.padding(5.dp)
-                                        )
+                                        when(stockPriceQuote.value){
+                                            is NetworkResult.Loading -> Unit
+                                            is NetworkResult.Error -> {
+                                                Text(
+                                                    text = stockPriceQuote.value.message.toString(),
+                                                    modifier = Modifier.padding(5.dp)
+                                                )
+                                            }
+                                            is NetworkResult.Success -> {
+                                                Text(
+                                                    text = stockPriceQuote.value.data.toString(),
+                                                    modifier = Modifier.padding(5.dp)
+                                                )
+                                            }
+                                        }
+
                                     }
                                     Divider()
                                 }
