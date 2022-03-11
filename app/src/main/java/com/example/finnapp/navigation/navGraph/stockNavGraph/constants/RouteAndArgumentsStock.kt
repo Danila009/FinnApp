@@ -6,5 +6,6 @@ object RouteAndArgumentsStock {
     }
     object Argument{
         const val SYMBOL = "symbol"
+        const val WEB_URL = "url"
     }
 }

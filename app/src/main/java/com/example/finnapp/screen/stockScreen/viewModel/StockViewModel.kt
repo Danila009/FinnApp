@@ -10,6 +10,7 @@ import com.example.finnapp.api.model.stock.StockMetric
 import com.example.finnapp.api.model.stock.StockPriceQuote
 import com.example.finnapp.api.model.stock.StockQuarterlyIncome
 import com.example.finnapp.api.repository.ApiFinnRepository
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -25,9 +26,6 @@ class StockViewModel @Inject constructor(
 
     private val _responseNewsCompany:MutableStateFlow<NetworkResult<List<News>>> = MutableStateFlow(NetworkResult.Loading())
     val responseNewsCompany:StateFlow<NetworkResult<List<News>>> = _responseNewsCompany.asStateFlow()
-
-    private val _responseStockPriceQuote:MutableStateFlow<NetworkResult<StockPriceQuote>> = MutableStateFlow(NetworkResult.Loading())
-    val responseStockPriceQuote: StateFlow<NetworkResult<StockPriceQuote>> = _responseStockPriceQuote.asStateFlow()
 
     private val _responseCompanyProfile:MutableStateFlow<NetworkResult<CompanyProfile>> =
         MutableStateFlow(NetworkResult.Loading())
@@ -62,10 +60,13 @@ class StockViewModel @Inject constructor(
         }
     }
 
-    fun getStockPriceQuote(symbol: String){
+    fun getStockPriceQuote(symbol: String):StateFlow<NetworkResult<StockPriceQuote>>{
+        val responseStockPriceQuote: MutableStateFlow<NetworkResult<StockPriceQuote>> =
+            MutableStateFlow(NetworkResult.Loading())
         viewModelScope.launch {
-            _responseStockPriceQuote.value = apiFinnRepository.getStockPriceQuote(symbol = symbol)
+            responseStockPriceQuote.value = apiFinnRepository.getStockPriceQuote(symbol)
         }
+        return responseStockPriceQuote.asStateFlow()
     }
 
     fun getStockMetric(symbol: String){

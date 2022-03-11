@@ -7,4 +7,9 @@ sealed class RouteScreenStock(val route:String) {
             symbol:String
         ):String = "company_profile_screen?symbol=$symbol"
     }
+    object Web:RouteScreenStock("web_screen?url={url}"){
+        fun argument(
+            url:String
+        ):String = "web_screen?url=$url"
+    }
 }

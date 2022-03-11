@@ -1,5 +1,6 @@
 package com.example.finnapp.screen.stockScreen
 
+import android.os.CountDownTimer
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -26,7 +27,8 @@ import com.example.finnapp.api.model.news.News
 import com.example.finnapp.api.model.stock.StockMetric
 import com.example.finnapp.api.model.stock.StockPriceQuote
 import com.example.finnapp.api.model.stock.StockQuarterlyIncome
-import com.example.finnapp.di.component.DaggerAppComponent
+import com.example.finnapp.navigation.navGraph.stockNavGraph.constants.RouteScreenStock
+import com.example.finnapp.screen.stockScreen.viewModel.StockViewModel
 import com.example.finnapp.ui.theme.primaryBackground
 import com.example.finnapp.ui.theme.secondaryBackground
 import com.example.finnapp.utils.Converters
@@ -35,6 +37,7 @@ import kotlinx.coroutines.flow.onEach
 
 @Composable
 fun CompanyProfileScreen(
+    stockViewModel:StockViewModel,
     navController: NavController,
     symbol:String
 ) {
@@ -55,9 +58,9 @@ fun CompanyProfileScreen(
     var stockPriceQuote:NetworkResult<StockPriceQuote> by
     remember { mutableStateOf(NetworkResult.Loading()) }
 
+    var timeCheck by remember { mutableStateOf(false) }
+
     LaunchedEffect(key1 = Unit, block = {
-        val stockViewModel = DaggerAppComponent.create()
-            .stockViewModel()
 
         stockViewModel.getCompanyProfile(symbol)
         stockViewModel.responseCompanyProfile.onEach {
@@ -78,12 +81,25 @@ fun CompanyProfileScreen(
         stockViewModel.responseStockQuarterlyIncome.onEach {
             stockQuarterlyIncome = it
         }.launchWhenCreated(lifecycleScope)
-
-        stockViewModel.getStockPriceQuote(symbol)
-        stockViewModel.responseStockPriceQuote.onEach {
-            stockPriceQuote = it
-        }.launchWhenCreated(lifecycleScope)
     })
+
+    val time = object : CountDownTimer(100,100){
+        override fun onTick(p0: Long) = Unit
+
+        override fun onFinish() {
+            stockViewModel.getStockPriceQuote(symbol)
+            stockViewModel.responseStockPriceQuote.onEach {
+                stockPriceQuote = it
+                timeCheck = true
+            }.launchWhenCreated(lifecycleScope)
+        }
+    }
+
+    if (timeCheck){
+
+    }else{
+        time.start()
+    }
 
     Scaffold(
         topBar = {
@@ -681,6 +697,20 @@ fun CompanyProfileScreen(
                                         Text(
                                             text = companyProfile.value.data!!.ipo.toString(),
                                             modifier = Modifier.padding(5.dp)
+                                        )
+                                    }
+                                }
+
+                                companyProfile.value.data?.weburl?.let {
+                                    Divider()
+                                    TextButton(
+                                        modifier = Modifier.padding(5.dp),
+                                        onClick = { navController.navigate(RouteScreenStock.Web.argument(
+                                        url = it
+                                    )) }) {
+                                        Text(
+                                            text = "Web ->",
+                                            color = secondaryBackground
                                         )
                                     }
                                 }

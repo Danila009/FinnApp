@@ -12,5 +12,5 @@ data class CompanyProfile(
     val phone: String,
     val shareOutstanding: Double,
     val ticker: String,
-    val weburl: String
+    val weburl: String? = null
 )

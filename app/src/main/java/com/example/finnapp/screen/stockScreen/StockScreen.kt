@@ -1,5 +1,6 @@
 package com.example.finnapp.screen.stockScreen
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -16,7 +17,6 @@ import androidx.navigation.NavController
 import com.example.finnapp.api.NetworkResult
 import com.example.finnapp.api.model.stock.Stock
 import com.example.finnapp.api.model.stock.StockPriceQuote
-import com.example.finnapp.di.component.DaggerAppComponent
 import com.example.finnapp.navigation.navGraph.stockNavGraph.constants.RouteScreenStock
 import com.example.finnapp.screen.stockScreen.viewModel.StockViewModel
 import com.example.finnapp.ui.theme.primaryBackground
@@ -24,22 +24,21 @@ import com.example.finnapp.ui.theme.secondaryBackground
 import com.example.finnapp.utils.Converters.launchWhenCreated
 import kotlinx.coroutines.flow.onEach
 
+@SuppressLint("FlowOperatorInvokedInComposition")
 @Composable
 fun StockScreen(
-    navController: NavController
+    navController: NavController,
+    stockViewModel: StockViewModel
 ) {
     val lifecycleScope = LocalLifecycleOwner.current.lifecycleScope
     val stock:MutableState<NetworkResult<List<Stock>>> =
         remember { mutableStateOf(NetworkResult.Loading()) }
 
-    var stockViewModel:StockViewModel? = null
-
     LaunchedEffect(key1 = Unit, block = {
-        stockViewModel = DaggerAppComponent.create()
-            .stockViewModel()
 
-        stockViewModel!!.getStockSymbol()
-        stockViewModel!!.responseStock.onEach {
+
+        stockViewModel.getStockSymbol()
+        stockViewModel.responseStock.onEach {
             stock.value = it
         }.launchWhenCreated(lifecycleScope)
 
@@ -108,12 +107,12 @@ fun StockScreen(
                                     mutableStateOf(NetworkResult.Loading())
                                 }
 
-                                stockViewModel?.let {
-                                    it.getStockPriceQuote(item.symbol)
-                                    it.responseStockPriceQuote.onEach { item ->
-                                        stockPriceQuote.value = item
+                                LaunchedEffect(key1 = Unit, block = {
+                                    stockViewModel.getStockPriceQuote(item.symbol)
+                                    stockViewModel.responseStockPriceQuote.onEach {
+                                        stockPriceQuote.value = it
                                     }.launchWhenCreated(lifecycleScope)
-                                }
+                                })
 
                                 Column {
                                     Column(
@@ -147,12 +146,11 @@ fun StockScreen(
                                             }
                                             is NetworkResult.Success -> {
                                                 Text(
-                                                    text = stockPriceQuote.value.data.toString(),
+                                                    text = "Current price: ${stockPriceQuote.value.data?.c}",
                                                     modifier = Modifier.padding(5.dp)
                                                 )
                                             }
                                         }
-
                                     }
                                     Divider()
                                 }
