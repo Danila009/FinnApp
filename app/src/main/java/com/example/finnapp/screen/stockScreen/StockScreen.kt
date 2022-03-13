@@ -1,47 +1,88 @@
 package com.example.finnapp.screen.stockScreen
 
 import android.annotation.SuppressLint
-import androidx.compose.foundation.clickable
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.shrinkHorizontally
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
+import com.example.finnapp.R
 import com.example.finnapp.api.NetworkResult
 import com.example.finnapp.api.model.stock.Stock
-import com.example.finnapp.api.model.stock.StockPriceQuote
-import com.example.finnapp.navigation.navGraph.stockNavGraph.constants.RouteScreenStock
+import com.example.finnapp.api.model.stock.StockLookup
+import com.example.finnapp.navigation.navGraph.covid19NavGraph.constants.RouteScreenGovid19
+import com.example.finnapp.screen.stockScreen.view.SearchView
+import com.example.finnapp.screen.stockScreen.view.StockLookupView
+import com.example.finnapp.screen.stockScreen.view.StockSymbolView
+import com.example.finnapp.screen.view.animation.shimmer.BaseListShimmer
 import com.example.finnapp.screen.stockScreen.viewModel.StockViewModel
+import com.example.finnapp.screen.view.BaseErrorView
 import com.example.finnapp.ui.theme.primaryBackground
 import com.example.finnapp.ui.theme.secondaryBackground
 import com.example.finnapp.utils.Converters.launchWhenCreated
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 
-@SuppressLint("FlowOperatorInvokedInComposition")
+@SuppressLint("FlowOperatorInvokedInComposition", "CoroutineCreationDuringComposition")
 @Composable
 fun StockScreen(
     navController: NavController,
     stockViewModel: StockViewModel
 ) {
     val lifecycleScope = LocalLifecycleOwner.current.lifecycleScope
-    val stock:MutableState<NetworkResult<List<Stock>>> =
+    val scope = rememberCoroutineScope()
+    val search = remember { mutableStateOf("") }
+    val stockLookup:MutableState<NetworkResult<StockLookup>> =
         remember { mutableStateOf(NetworkResult.Loading()) }
 
-    LaunchedEffect(key1 = Unit, block = {
+    val stockSymbol:MutableState<NetworkResult<List<Stock>>> =
+        remember { mutableStateOf(NetworkResult.Loading()) }
 
+    var refreshing by remember { mutableStateOf(false) }
 
+    stockViewModel.responseStockSymbol.onEach {
+        stockSymbol.value = it
+    }.launchWhenCreated(lifecycleScope)
+
+    stockViewModel.responseStockLookup.onEach {
+        stockLookup.value = it
+    }.launchWhenCreated(lifecycleScope)
+
+    if (refreshing){
         stockViewModel.getStockSymbol()
-        stockViewModel.responseStock.onEach {
-            stock.value = it
-        }.launchWhenCreated(lifecycleScope)
+        stockViewModel.getStockLookup(search = search.value)
+        scope.launch {
+            delay(1000L)
+            if (
+                stockLookup.value !is NetworkResult.Success
+                || stockSymbol.value !is NetworkResult.Success
+            )
+                refreshing = false
+        }
+    }
 
+    LaunchedEffect(key1 = Unit, block = {
+        stockViewModel.getStockSymbol()
+    })
+
+    LaunchedEffect(key1 = search.value, block = {
+        stockViewModel.getStockLookup(search = search.value)
     })
 
     Scaffold(
@@ -49,12 +90,23 @@ fun StockScreen(
             TopAppBar(
                 backgroundColor = primaryBackground,
                 elevation = 8.dp,
-                title = {},
+                title = {
+                    SearchView(
+                        search = search
+                    )
+                },
                 actions = {
                     TextButton(onClick = { /*TODO*/ }) {
                         Text(
                             text = "USD",
                             color = secondaryBackground
+                        )
+                    }
+                }, navigationIcon = {
+                    IconButton(onClick = { navController.navigate(RouteScreenGovid19.Covid19Screen.route) }) {
+                        Image(
+                            painter = painterResource(id = R.drawable.covid),
+                            contentDescription = null
                         )
                     }
                 }
@@ -65,99 +117,87 @@ fun StockScreen(
                 modifier = Modifier.fillMaxSize(),
                 color = primaryBackground
             ) {
-                LazyColumn(content = {
-                    when(stock.value){
-                        is NetworkResult.Loading -> {
-                            item {
-                                Column(
-                                    modifier = Modifier.fillMaxSize(),
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.Center
-                                ) {
-                                    CircularProgressIndicator(
-                                        modifier = Modifier.padding(5.dp),
-                                        color = secondaryBackground
-                                    )
-                                    Text(
-                                        text = "Loading...",
-                                        modifier = Modifier.padding(5.dp),
-                                        color = secondaryBackground
-                                    )
-                                }
-                            }
-                        }
-                        is NetworkResult.Error -> {
-                            item {
-                                Column(
-                                    modifier = Modifier.fillMaxSize(),
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.Center
-                                ) {
-                                    Text(
-                                        text = stock.value.message.toString(),
-                                        color = Color.Red
-                                    )
-                                }
-                            }
-                        }
-                        is NetworkResult.Success -> {
-                            items(stock.value.data!!){ item ->
-
-                                val stockPriceQuote:MutableState<NetworkResult<StockPriceQuote>> = remember {
-                                    mutableStateOf(NetworkResult.Loading())
-                                }
-
-                                LaunchedEffect(key1 = Unit, block = {
-                                    stockViewModel.getStockPriceQuote(item.symbol)
-                                    stockViewModel.responseStockPriceQuote.onEach {
-                                        stockPriceQuote.value = it
-                                    }.launchWhenCreated(lifecycleScope)
-                                })
-
-                                Column {
-                                    Column(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .clickable {
-                                                navController.navigate(
-                                                    RouteScreenStock.CompanyProfile.argument(
-                                                        symbol = item.symbol
-                                                    )
-                                                )
-                                            },
-                                    ) {
-                                        Text(
-                                            text = item.description,
-                                            modifier = Modifier.padding(5.dp)
-                                        )
-
-                                        when(stockPriceQuote.value){
-                                            is NetworkResult.Loading -> {
-                                                CircularProgressIndicator(
-                                                    modifier = Modifier.padding(5.dp),
-                                                    color = secondaryBackground
-                                                )
-                                            }
-                                            is NetworkResult.Error -> {
-                                                Text(
-                                                    text = stockPriceQuote.value.message.toString(),
-                                                    modifier = Modifier.padding(5.dp)
-                                                )
-                                            }
-                                            is NetworkResult.Success -> {
-                                                Text(
-                                                    text = "Current price: ${stockPriceQuote.value.data?.c}",
-                                                    modifier = Modifier.padding(5.dp)
-                                                )
-                                            }
-                                        }
-                                    }
-                                    Divider()
-                                }
-                            }
-                        }
+                SwipeRefresh(
+                    state = rememberSwipeRefreshState(isRefreshing = refreshing),
+                    onRefresh = {
+                        refreshing = true
                     }
-                })
+                ) {
+                    AnimatedVisibility(
+                        visible = search.value.isEmpty(),
+                        enter = expandHorizontally(),
+                        exit = shrinkHorizontally()
+                    ) {
+                        LazyColumn(content = {
+                            when(stockSymbol.value){
+                                is NetworkResult.Loading -> {
+                                    items(30) {
+                                        BaseListShimmer()
+                                    }
+                                }
+                                is NetworkResult.Error -> {
+                                    item {
+                                        BaseErrorView(
+                                            message = stockSymbol.value.message.toString()
+                                        )
+                                    }
+                                }
+                                is NetworkResult.Success -> {
+                                    items(stockSymbol.value.data!!){ item ->
+                                        StockSymbolView(
+                                            stockViewModel = stockViewModel,
+                                            lifecycleScope = lifecycleScope,
+                                            navController = navController,
+                                            item = item
+                                        )
+                                    }
+                                }
+                            }
+                        })
+                    }
+
+                    AnimatedVisibility(
+                        visible = search.value.isNotEmpty(),
+                        enter = expandHorizontally(),
+                        exit = shrinkHorizontally()
+                    ) {
+                        LazyColumn(content = {
+                            when(stockLookup.value){
+                                is NetworkResult.Loading -> {
+                                    items(30) {
+                                        BaseListShimmer()
+                                    }
+                                }
+                                is NetworkResult.Error -> {
+                                    item {
+                                        BaseErrorView(message = stockLookup.value.message.toString())
+                                    }
+                                }
+                                is NetworkResult.Success -> {
+                                    item {
+                                        Text(
+                                            text = "Result: ${stockLookup.value.data?.count}",
+                                            modifier = Modifier.padding(5.dp),
+                                            fontFamily = FontFamily.Cursive,
+                                            fontWeight = FontWeight.Bold,
+                                            color = secondaryBackground,
+                                            fontSize = 22.sp
+                                        )
+                                    }
+
+                                    items(stockLookup.value.data?.result!!){ item ->
+                                        StockLookupView(
+                                            stockViewModel = stockViewModel,
+                                            lifecycleScope = lifecycleScope,
+                                            navController = navController,
+                                            item = item
+                                        )
+                                    }
+                                }
+                            }
+                        })
+                    }
+                }
             }
         }
     )

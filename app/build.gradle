@@ -75,6 +75,17 @@ dependencies {
 
     //Okhttp
     implementation("com.squareup.okhttp3:logging-interceptor:5.0.0-alpha.2")
+    
+    //Swipe
+    implementation "com.google.accompanist:accompanist-swiperefresh:0.19.0"
+
+    //Scarlet
+    def scarlet_version = '0.1.12'
+
+    implementation "com.tinder.scarlet:lifecycle-android:$scarlet_version"
+    implementation "com.tinder.scarlet:websocket-okhttp:$scarlet_version"
+    implementation "com.tinder.scarlet:message-adapter-moshi:$scarlet_version"
+    implementation "com.tinder.scarlet:stream-adapter-coroutines:$scarlet_version"
 
     //Dagger
     implementation("com.google.dagger:dagger:2.40.5")

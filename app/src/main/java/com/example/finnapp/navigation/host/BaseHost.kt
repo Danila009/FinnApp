@@ -15,11 +15,12 @@ import androidx.navigation.compose.NavHost
 import com.example.finnapp.ui.theme.primaryBackground
 import com.example.finnapp.ui.theme.secondaryBackground
 import com.example.finnapp.navigation.host.buttonBar.ButtonBarDate
-import com.example.finnapp.navigation.navGraph.stockNavGraph.constants.RouteAndArgumentsStock.Route.STOCK_ROUTE
 import com.example.finnapp.navigation.navGraph.stockNavGraph.stockNavGraph
 import com.example.finnapp.navigation.navGraph.newsNavGraph.constants.RouteAndArgumentsNews
 import com.example.finnapp.navigation.navGraph.newsNavGraph.newsNavGraph
+import com.example.finnapp.navigation.navGraph.stockNavGraph.constants.RouteAndArgumentsStock.Route.STOCK_ROUTE
 
+@ExperimentalMaterialApi
 @Composable
 fun BaseHost(
     navHostController: NavHostController

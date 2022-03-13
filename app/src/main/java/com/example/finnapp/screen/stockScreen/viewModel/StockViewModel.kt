@@ -5,12 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.example.finnapp.api.NetworkResult
 import com.example.finnapp.api.model.company.CompanyProfile
 import com.example.finnapp.api.model.news.News
-import com.example.finnapp.api.model.stock.Stock
-import com.example.finnapp.api.model.stock.StockMetric
-import com.example.finnapp.api.model.stock.StockPriceQuote
-import com.example.finnapp.api.model.stock.StockQuarterlyIncome
+import com.example.finnapp.api.model.stock.*
 import com.example.finnapp.api.repository.ApiFinnRepository
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -21,8 +17,13 @@ class StockViewModel @Inject constructor(
     private val apiFinnRepository: ApiFinnRepository
 ):ViewModel(){
 
-    private val _responseStock:MutableStateFlow<NetworkResult<List<Stock>>> = MutableStateFlow(NetworkResult.Loading())
-    val responseStock:StateFlow<NetworkResult<List<Stock>>> = _responseStock.asStateFlow()
+    private val _responseStockLookup:MutableStateFlow<NetworkResult<StockLookup>> =
+        MutableStateFlow(NetworkResult.Loading())
+    val responseStockLookup:StateFlow<NetworkResult<StockLookup>> = _responseStockLookup.asStateFlow()
+
+    private val _responseStockSymbol:MutableStateFlow<NetworkResult<List<Stock>>> =
+        MutableStateFlow(NetworkResult.Loading())
+    val responseStockSymbol:StateFlow<NetworkResult<List<Stock>>> = _responseStockSymbol.asStateFlow()
 
     private val _responseNewsCompany:MutableStateFlow<NetworkResult<List<News>>> = MutableStateFlow(NetworkResult.Loading())
     val responseNewsCompany:StateFlow<NetworkResult<List<News>>> = _responseNewsCompany.asStateFlow()
@@ -42,9 +43,19 @@ class StockViewModel @Inject constructor(
     val responseStockQuarterlyIncome:StateFlow<NetworkResult<List<StockQuarterlyIncome>>> =
         _responseStockQuarterlyIncome.asStateFlow()
 
+    fun getStockLookup(
+        search:String = ""
+    ){
+        viewModelScope.launch {
+            _responseStockLookup.value = apiFinnRepository.getStockLookup(
+                search = search
+            )
+        }
+    }
+
     fun getStockSymbol(){
         viewModelScope.launch {
-            _responseStock.value = apiFinnRepository.getStockSymbol()
+            _responseStockSymbol.value = apiFinnRepository.getStockSymbol()
         }
     }
 

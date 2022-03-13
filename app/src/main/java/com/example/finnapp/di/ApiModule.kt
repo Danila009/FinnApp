@@ -12,12 +12,12 @@ import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Singleton
 
 @Module
-object ApiModule {
+class ApiModule {
 
     @Provides
     @Singleton
     fun providerStockApi(
-        stockApi: FinnApi
+        stockApi: FinnApi,
     ) = ApiFinnRepository(stockApi)
 
     @Provides

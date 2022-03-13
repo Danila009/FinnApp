@@ -22,7 +22,7 @@ fun WebScreen(
                 backgroundColor = primaryBackground,
                 elevation = 8.dp,
                 title = {
-                    Text(text = Converters.replaceRange(url, 40))
+                    Text(text = Converters.replaceRange(url, 20))
                 }
             )
         }, content = {

@@ -3,6 +3,7 @@ package com.example.finnapp.navigation.navGraph.stockNavGraph
 import androidx.navigation.*
 import androidx.navigation.compose.composable
 import com.example.finnapp.di.component.DaggerAppComponent
+import com.example.finnapp.navigation.navGraph.covid19NavGraph.covid19NavGraph
 import com.example.finnapp.navigation.navGraph.stockNavGraph.constants.RouteAndArgumentsStock.Argument.SYMBOL
 import com.example.finnapp.navigation.navGraph.stockNavGraph.constants.RouteAndArgumentsStock.Argument.WEB_URL
 import com.example.finnapp.navigation.navGraph.stockNavGraph.constants.RouteAndArgumentsStock.Route.STOCK_ROUTE
@@ -14,16 +15,21 @@ import com.example.finnapp.screen.stockScreen.WebScreen
 fun NavGraphBuilder.stockNavGraph(
     navController: NavController
 ) {
-    val stockViewModel = DaggerAppComponent.create()
-        .stockViewModel()
+    val daggerAppComponent = DaggerAppComponent.create()
     navigation(
         startDestination = RouteScreenStock.Stock.route,
         route = STOCK_ROUTE,
         builder = {
+
+            covid19NavGraph(
+                navController = navController,
+                appComponent = daggerAppComponent
+            )
+
             composable(RouteScreenStock.Stock.route){
                 StockScreen(
                     navController = navController,
-                    stockViewModel = stockViewModel
+                    stockViewModel = daggerAppComponent.stockViewModel()
                 )
             }
             composable(
@@ -37,7 +43,7 @@ fun NavGraphBuilder.stockNavGraph(
                 CompanyProfileScreen(
                     symbol = it.arguments?.getString(SYMBOL).toString(),
                     navController = navController,
-                    stockViewModel = stockViewModel
+                    stockViewModel = daggerAppComponent.stockViewModel()
                 )
             }
             composable(

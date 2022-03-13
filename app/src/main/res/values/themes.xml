@@ -2,6 +2,6 @@
 <resources>
 
     <style name="Theme.FinnApp" parent="android:Theme.Material.Light.NoActionBar">
-        <item name="android:statusBarColor">@color/purple_700</item>
+        <item name="android:statusBarColor">#23282D</item>
     </style>
 </resources>

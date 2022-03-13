@@ -1,17 +1,17 @@
 package com.example.finnapp.api
 
 import com.example.finnapp.api.model.company.CompanyProfile
+import com.example.finnapp.api.model.covid19.Covid19
 import com.example.finnapp.api.model.news.News
-import com.example.finnapp.api.model.stock.Stock
-import com.example.finnapp.api.model.stock.StockMetric
-import com.example.finnapp.api.model.stock.StockPriceQuote
-import com.example.finnapp.api.model.stock.StockQuarterlyIncome
+import com.example.finnapp.api.model.stock.*
 import com.example.finnapp.api.utils.ConstantsUrl.COMPANY_PROFILE_URL
+import com.example.finnapp.api.utils.ConstantsUrl.COVID_19_URL
 import com.example.finnapp.api.utils.ConstantsUrl.NEWS_COMPANY_URL
 import com.example.finnapp.api.utils.ConstantsUrl.NEWS_MARKER_URL
-import com.example.finnapp.api.utils.ConstantsUrl.STOCK_METRIC
-import com.example.finnapp.api.utils.ConstantsUrl.STOCK_PRICE_QUOTE
-import com.example.finnapp.api.utils.ConstantsUrl.STOCK_QUARTERLY_INCOME
+import com.example.finnapp.api.utils.ConstantsUrl.STOCK_LOOKUP_URL
+import com.example.finnapp.api.utils.ConstantsUrl.STOCK_METRIC_URL
+import com.example.finnapp.api.utils.ConstantsUrl.STOCK_PRICE_QUOTE_URL
+import com.example.finnapp.api.utils.ConstantsUrl.STOCK_QUARTERLY_INCOME_URL
 import com.example.finnapp.api.utils.ConstantsUrl.STOCK_SYMBOL_URL
 import retrofit2.Response
 import retrofit2.http.GET
@@ -23,6 +23,11 @@ interface FinnApi {
     suspend fun getStockSymbol(
         @Query("exchange") exchange:String = "US",
     ):Response<List<Stock>>
+
+    @GET(STOCK_LOOKUP_URL)
+    suspend fun getStockLookup(
+        @Query("q") search:String
+    ):Response<StockLookup>
 
     @GET(NEWS_MARKER_URL)
     suspend fun getNewsMarker(
@@ -41,19 +46,23 @@ interface FinnApi {
         @Query("symbol") symbol:String
     ):Response<CompanyProfile>
 
-    @GET(STOCK_PRICE_QUOTE)
+    @GET(STOCK_PRICE_QUOTE_URL)
     suspend fun getStockPriceQuote(
         @Query("symbol") symbol:String
     ):Response<StockPriceQuote>
 
-    @GET(STOCK_METRIC)
+    @GET(STOCK_METRIC_URL)
     suspend fun getStockMetric(
         @Query("symbol") symbol:String
     ):Response<StockMetric>
 
-    @GET(STOCK_QUARTERLY_INCOME)
+    @GET(STOCK_QUARTERLY_INCOME_URL)
     suspend fun getStockQuarterlyIncome(
         @Query("symbol") symbol:String
     ):Response<List<StockQuarterlyIncome>>
+
+    @GET(COVID_19_URL)
+    suspend fun getCovid19():Response<List<Covid19>>
+
 
 }

@@ -1,6 +1,6 @@
 package com.example.finnapp.screen.stockScreen
 
-import android.os.CountDownTimer
+import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -29,12 +29,14 @@ import com.example.finnapp.api.model.stock.StockPriceQuote
 import com.example.finnapp.api.model.stock.StockQuarterlyIncome
 import com.example.finnapp.navigation.navGraph.stockNavGraph.constants.RouteScreenStock
 import com.example.finnapp.screen.stockScreen.viewModel.StockViewModel
+import com.example.finnapp.screen.view.animation.shimmer.ImageShimmer
 import com.example.finnapp.ui.theme.primaryBackground
 import com.example.finnapp.ui.theme.secondaryBackground
 import com.example.finnapp.utils.Converters
 import com.example.finnapp.utils.Converters.launchWhenCreated
 import kotlinx.coroutines.flow.onEach
 
+@SuppressLint("FlowOperatorInvokedInComposition")
 @Composable
 fun CompanyProfileScreen(
     stockViewModel:StockViewModel,
@@ -58,7 +60,7 @@ fun CompanyProfileScreen(
     var stockPriceQuote:NetworkResult<StockPriceQuote> by
     remember { mutableStateOf(NetworkResult.Loading()) }
 
-    var timeCheck by remember { mutableStateOf(false) }
+    //var timeCheck by remember { mutableStateOf(false) }
 
     LaunchedEffect(key1 = Unit, block = {
 
@@ -83,23 +85,22 @@ fun CompanyProfileScreen(
         }.launchWhenCreated(lifecycleScope)
     })
 
-    val time = object : CountDownTimer(100,100){
-        override fun onTick(p0: Long) = Unit
-
-        override fun onFinish() {
-            stockViewModel.getStockPriceQuote(symbol)
-            stockViewModel.responseStockPriceQuote.onEach {
+//    val time = object : CountDownTimer(5000,5000){
+//        override fun onTick(p0: Long) = Unit
+//
+//        override fun onFinish() {
+            stockViewModel.getStockPriceQuote(symbol).onEach {
                 stockPriceQuote = it
-                timeCheck = true
+                //timeCheck = true
             }.launchWhenCreated(lifecycleScope)
-        }
-    }
+//        }
+//    }
 
-    if (timeCheck){
-
-    }else{
-        time.start()
-    }
+//    if (timeCheck){
+//        timeCheck = false
+//    }else{
+//        time.start()
+//    }
 
     Scaffold(
         topBar = {
@@ -178,8 +179,8 @@ fun CompanyProfileScreen(
                                                     val stateCoil = painter.state
                                                     if (stateCoil is AsyncImagePainter.State.Loading
                                                         || stateCoil is AsyncImagePainter.State.Error) {
-                                                        CircularProgressIndicator(
-                                                            color = secondaryBackground
+                                                        ImageShimmer(
+                                                            sizeImage = 200.dp
                                                         )
                                                     } else {
                                                         SubcomposeAsyncImageContent()
@@ -666,8 +667,8 @@ fun CompanyProfileScreen(
                                                                             val stateCoil = painter.state
                                                                             if (stateCoil is AsyncImagePainter.State.Loading
                                                                                 || stateCoil is AsyncImagePainter.State.Error) {
-                                                                                CircularProgressIndicator(
-                                                                                    color = secondaryBackground
+                                                                                ImageShimmer(
+                                                                                    sizeImage = 100.dp
                                                                                 )
                                                                             } else {
                                                                                 SubcomposeAsyncImageContent()

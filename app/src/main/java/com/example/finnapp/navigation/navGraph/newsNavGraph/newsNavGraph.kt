@@ -1,5 +1,6 @@
 package com.example.finnapp.navigation.navGraph.newsNavGraph
 
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
@@ -8,6 +9,7 @@ import com.example.finnapp.navigation.navGraph.newsNavGraph.constants.RouteAndAr
 import com.example.finnapp.navigation.navGraph.newsNavGraph.constants.RouteScreenNews
 import com.example.finnapp.screen.newsScreen.NewsScreen
 
+@ExperimentalMaterialApi
 fun NavGraphBuilder.newsNavGraph(
     navController: NavController
 ) {
