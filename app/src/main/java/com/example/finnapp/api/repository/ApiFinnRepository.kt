@@ -21,7 +21,7 @@ class ApiFinnRepository @Inject constructor(
         search = search
     ) }
 
-    suspend fun getMarkerNews():NetworkResult<List<News>> = safeApiCall { stockApi.getNewsMarker() }
+    suspend fun getMarkerNews(category:String):NetworkResult<List<News>> = safeApiCall { stockApi.getNewsMarker(category) }
 
     suspend fun getNewsCompany(
         symbol: String

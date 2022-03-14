@@ -12,6 +12,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
+import com.example.finnapp.di.component.AppComponent
+import com.example.finnapp.di.component.DaggerAppComponent
 import com.example.finnapp.ui.theme.primaryBackground
 import com.example.finnapp.ui.theme.secondaryBackground
 import com.example.finnapp.navigation.host.buttonBar.ButtonBarDate
@@ -23,7 +25,8 @@ import com.example.finnapp.navigation.navGraph.stockNavGraph.constants.RouteAndA
 @ExperimentalMaterialApi
 @Composable
 fun BaseHost(
-    navHostController: NavHostController
+    navHostController: NavHostController,
+    appComponent: AppComponent = DaggerAppComponent.create()
 ) {
     val idButtonBar = remember { mutableStateOf(ButtonBarDate.Stock) }
 
@@ -74,7 +77,8 @@ fun BaseHost(
                         navController = navHostController
                     )
                     newsNavGraph(
-                        navController = navHostController
+                        navController = navHostController,
+                        appComponent = appComponent
                     )
                 }
             )

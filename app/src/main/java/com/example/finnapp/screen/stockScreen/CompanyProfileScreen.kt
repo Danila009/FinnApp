@@ -24,18 +24,17 @@ import coil.compose.SubcomposeAsyncImageContent
 import com.example.finnapp.api.NetworkResult
 import com.example.finnapp.api.model.company.CompanyProfile
 import com.example.finnapp.api.model.news.News
-import com.example.finnapp.api.model.stock.StockMetric
-import com.example.finnapp.api.model.stock.StockPriceQuote
-import com.example.finnapp.api.model.stock.StockQuarterlyIncome
+import com.example.finnapp.api.model.stock.*
 import com.example.finnapp.navigation.navGraph.stockNavGraph.constants.RouteScreenStock
+import com.example.finnapp.screen.newsScreen.view.NewsExpandableCardView
 import com.example.finnapp.screen.stockScreen.viewModel.StockViewModel
 import com.example.finnapp.screen.view.animation.shimmer.ImageShimmer
 import com.example.finnapp.ui.theme.primaryBackground
 import com.example.finnapp.ui.theme.secondaryBackground
-import com.example.finnapp.utils.Converters
 import com.example.finnapp.utils.Converters.launchWhenCreated
 import kotlinx.coroutines.flow.onEach
 
+@ExperimentalMaterialApi
 @SuppressLint("FlowOperatorInvokedInComposition")
 @Composable
 fun CompanyProfileScreen(
@@ -60,10 +59,10 @@ fun CompanyProfileScreen(
     var stockPriceQuote:NetworkResult<StockPriceQuote> by
     remember { mutableStateOf(NetworkResult.Loading()) }
 
-    //var timeCheck by remember { mutableStateOf(false) }
+    var priceUpdate:NetworkResult<PriceUpdate> by
+        remember { mutableStateOf(NetworkResult.Loading()) }
 
     LaunchedEffect(key1 = Unit, block = {
-
         stockViewModel.getCompanyProfile(symbol)
         stockViewModel.responseCompanyProfile.onEach {
             companyProfile.value = it
@@ -85,22 +84,13 @@ fun CompanyProfileScreen(
         }.launchWhenCreated(lifecycleScope)
     })
 
-//    val time = object : CountDownTimer(5000,5000){
-//        override fun onTick(p0: Long) = Unit
-//
-//        override fun onFinish() {
-            stockViewModel.getStockPriceQuote(symbol).onEach {
-                stockPriceQuote = it
-                //timeCheck = true
-            }.launchWhenCreated(lifecycleScope)
-//        }
-//    }
+    stockViewModel.getPriceUpdate(symbol).onEach {
+        priceUpdate = it
+    }.launchWhenCreated(lifecycleScope)
 
-//    if (timeCheck){
-//        timeCheck = false
-//    }else{
-//        time.start()
-//    }
+    stockViewModel.getStockPriceQuote(symbol).onEach {
+        stockPriceQuote = it
+    }.launchWhenCreated(lifecycleScope)
 
     Scaffold(
         topBar = {
@@ -211,6 +201,49 @@ fun CompanyProfileScreen(
                                                 text = "Stock price:",
                                                 modifier = Modifier.padding(5.dp)
                                             )
+                                        }
+                                    }
+
+                                    when(priceUpdate){
+                                        is NetworkResult.Error -> {
+                                            Column(
+                                                modifier = Modifier.fillMaxSize(),
+                                                horizontalAlignment = Alignment.CenterHorizontally,
+                                                verticalArrangement = Arrangement.Center
+                                            ) {
+                                                Text(
+                                                    text = priceUpdate.message.toString(),
+                                                    color = Color.Red
+                                                )
+                                            }
+                                        }
+                                        is NetworkResult.Loading -> {
+                                            Column(
+                                                modifier = Modifier.fillMaxSize(),
+                                                horizontalAlignment = Alignment.CenterHorizontally,
+                                                verticalArrangement = Arrangement.Center
+                                            ) {
+                                                CircularProgressIndicator(
+                                                    modifier = Modifier.padding(5.dp),
+                                                    color = secondaryBackground
+                                                )
+                                            }
+                                        }
+                                        is NetworkResult.Success -> {
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.SpaceBetween
+                                            ) {
+                                                Text(
+                                                    text = "Update price",
+                                                    modifier = Modifier.padding(5.dp)
+                                                )
+
+                                                Text(
+                                                    text = priceUpdate.data?.data.toString(),
+                                                    modifier = Modifier.padding(5.dp)
+                                                )
+                                            }
                                         }
                                     }
 
@@ -612,85 +645,6 @@ fun CompanyProfileScreen(
                                         }
                                     }
 
-                                    when(newsCompany.value){
-                                        is NetworkResult.Loading -> {
-                                            Column(
-                                                modifier = Modifier.fillMaxSize(),
-                                                horizontalAlignment = Alignment.CenterHorizontally,
-                                                verticalArrangement = Arrangement.Center
-                                            ) {
-                                                CircularProgressIndicator(
-                                                    modifier = Modifier.padding(5.dp),
-                                                    color = secondaryBackground
-                                                )
-                                                Text(
-                                                    text = "Loading...",
-                                                    modifier = Modifier.padding(5.dp),
-                                                    color = secondaryBackground
-                                                )
-                                            }
-                                        }
-                                        is NetworkResult.Error -> {
-                                            Column(
-                                                modifier = Modifier.fillMaxSize(),
-                                                horizontalAlignment = Alignment.CenterHorizontally,
-                                                verticalArrangement = Arrangement.Center
-                                            ) {
-                                                Text(
-                                                    text = companyProfile.value.message.toString(),
-                                                    color = Color.Red
-                                                )
-                                            }
-                                        }
-                                        is NetworkResult.Success -> {
-                                            LazyRow(content = {
-                                                items(newsCompany.value.data!!){ item ->
-                                                    Card(
-                                                        backgroundColor = primaryBackground,
-                                                        elevation = 8.dp,
-                                                        shape = AbsoluteRoundedCornerShape(15.dp),
-                                                        modifier = Modifier
-                                                            .padding(5.dp)
-                                                            .width(250.dp)
-                                                            .height(150.dp),
-                                                    ) {
-                                                        Row {
-                                                            item.image.let {
-                                                                if (it.isNotEmpty()){
-                                                                    SubcomposeAsyncImage(
-                                                                        modifier = Modifier
-                                                                            .size(100.dp)
-                                                                            .padding(10.dp),
-                                                                        model = it,
-                                                                        contentDescription = null,
-                                                                        loading = {
-                                                                            val stateCoil = painter.state
-                                                                            if (stateCoil is AsyncImagePainter.State.Loading
-                                                                                || stateCoil is AsyncImagePainter.State.Error) {
-                                                                                ImageShimmer(
-                                                                                    sizeImage = 100.dp
-                                                                                )
-                                                                            } else {
-                                                                                SubcomposeAsyncImageContent()
-                                                                            }
-                                                                        }
-                                                                    )
-                                                                }
-                                                            }
-                                                            Text(
-                                                                text = Converters.replaceRange(
-                                                                    item.headline, 51),
-                                                                modifier = Modifier.padding(5.dp)
-                                                            )
-                                                        }
-                                                    }
-                                                }
-                                            })
-                                        }
-                                    }
-
-                                    Divider()
-
                                     Row(
                                         modifier = Modifier.fillMaxWidth(),
                                         horizontalArrangement = Arrangement.End
@@ -700,10 +654,10 @@ fun CompanyProfileScreen(
                                             modifier = Modifier.padding(5.dp)
                                         )
                                     }
+                                    Divider()
                                 }
 
                                 companyProfile.value.data?.weburl?.let {
-                                    Divider()
                                     TextButton(
                                         modifier = Modifier.padding(5.dp),
                                         onClick = { navController.navigate(RouteScreenStock.Web.argument(
@@ -714,10 +668,58 @@ fun CompanyProfileScreen(
                                             color = secondaryBackground
                                         )
                                     }
+                                    Divider()
                                 }
                             }
                         }
                     }
+                    when(newsCompany.value){
+                        is NetworkResult.Loading -> {
+                            item {
+                                Column(
+                                    modifier = Modifier.fillMaxSize(),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.Center
+                                ) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.padding(5.dp),
+                                        color = secondaryBackground
+                                    )
+                                    Text(
+                                        text = "Loading...",
+                                        modifier = Modifier.padding(5.dp),
+                                        color = secondaryBackground
+                                    )
+                                }
+                            }
+                        }
+                        is NetworkResult.Error -> {
+                            item {
+                                Column(
+                                    modifier = Modifier.fillMaxSize(),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.Center
+                                ) {
+                                    Text(
+                                        text = companyProfile.value.message.toString(),
+                                        color = Color.Red
+                                    )
+                                }
+                            }
+                        }
+                        is NetworkResult.Success -> {
+                            items(newsCompany.value.data!!){ item ->
+                                Column {
+                                    NewsExpandableCardView(
+                                        navController = navController,
+                                        news = item
+                                    )
+                                    Divider()
+                                }
+                            }
+                        }
+                    }
+
                     item {
                         Spacer(modifier = Modifier
                             .fillMaxWidth()

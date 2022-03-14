@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.navigation.compose.rememberNavController
+import com.example.finnapp.api.webSocketListener.SocketListenerUtil
 import com.example.finnapp.navigation.host.BaseHost
 import com.example.finnapp.ui.theme.FinnAppTheme
 
@@ -12,6 +13,7 @@ import com.example.finnapp.ui.theme.FinnAppTheme
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        SocketListenerUtil.connect()
         setContent {
             FinnAppTheme {
                 BaseHost(

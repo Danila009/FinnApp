@@ -1,5 +1,6 @@
 package com.example.finnapp.navigation.navGraph.stockNavGraph
 
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.navigation.*
 import androidx.navigation.compose.composable
 import com.example.finnapp.di.component.DaggerAppComponent
@@ -12,6 +13,7 @@ import com.example.finnapp.screen.stockScreen.CompanyProfileScreen
 import com.example.finnapp.screen.stockScreen.StockScreen
 import com.example.finnapp.screen.stockScreen.WebScreen
 
+@ExperimentalMaterialApi
 fun NavGraphBuilder.stockNavGraph(
     navController: NavController
 ) {

@@ -31,7 +31,7 @@ interface FinnApi {
 
     @GET(NEWS_MARKER_URL)
     suspend fun getNewsMarker(
-        
+        @Query("category") category:String
     ):Response<List<News>>
 
     @GET(NEWS_COMPANY_URL)

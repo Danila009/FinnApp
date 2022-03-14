@@ -3,6 +3,8 @@ package com.example.finnapp.utils
 import androidx.lifecycle.LifecycleCoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
 
 object Converters {
 
@@ -19,5 +21,9 @@ object Converters {
             int until string.length,
             "..."
         )
+    }
+
+    inline fun <reified T> decodeFromString (string: String):T{
+        return Json.decodeFromString(string)
     }
 }

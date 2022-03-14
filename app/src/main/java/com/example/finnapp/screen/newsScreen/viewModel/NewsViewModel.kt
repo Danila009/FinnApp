@@ -19,9 +19,11 @@ class NewsViewModel @Inject constructor(
         MutableStateFlow(NetworkResult.Loading())
     val responseNewsMarker:StateFlow<NetworkResult<List<News>>> = _responseNewsMarker.asStateFlow()
 
-    fun getMarkerNews(){
+    fun getMarkerNews(
+        category:String = ""
+    ){
         viewModelScope.launch {
-            _responseNewsMarker.value = apiFinnRepository.getMarkerNews()
+            _responseNewsMarker.value = apiFinnRepository.getMarkerNews(category)
         }
     }
 }
