@@ -56,9 +56,11 @@ class StockViewModel @Inject constructor(
         }
     }
 
-    fun getStockSymbol(){
+    fun getStockSymbol(exchange:String){
         viewModelScope.launch {
-            _responseStockSymbol.value = apiFinnRepository.getStockSymbol()
+            _responseStockSymbol.value = apiFinnRepository.getStockSymbol(
+                exchange = exchange
+            )
         }
     }
 
@@ -68,9 +70,17 @@ class StockViewModel @Inject constructor(
         }
     }
 
-    fun getNewsCompany(symbol: String){
+    fun getNewsCompany(
+        symbol: String,
+        startData:String,
+        endData:String
+    ){
         viewModelScope.launch {
-            _responseNewsCompany.value = apiFinnRepository.getNewsCompany(symbol = symbol)
+            _responseNewsCompany.value = apiFinnRepository.getNewsCompany(
+                symbol = symbol,
+                startData = startData,
+                endData = endData
+            )
         }
     }
 
@@ -80,13 +90,17 @@ class StockViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 SocketListenerUtil.connect(sendSymbol = symbol)
-                val stockPriceQuote = Converters.decodeFromString<PriceUpdate>(SocketListenerUtil.mResponseStockPriceQuote)
-                responsePriceUpdate.value = NetworkResult.Success(stockPriceQuote)
+                SocketListenerUtil.mResponseStockPriceQuote.collect{
+                    val stockPriceQuote = Converters.decodeFromString<PriceUpdate>(
+                        it
+                    )
+                    responsePriceUpdate.value = NetworkResult.Success(stockPriceQuote)
+                }
             }catch (e:Exception){
                 responsePriceUpdate.value = NetworkResult.Error(e.toString())
             }
         }
-        return responsePriceUpdate
+        return responsePriceUpdate.asStateFlow()
     }
 
     fun getStockPriceQuote(symbol: String):StateFlow<NetworkResult<StockPriceQuote>>{

@@ -4,6 +4,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Divider
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
@@ -12,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.navigation.NavController
 import com.example.finnapp.api.NetworkResult
+import com.example.finnapp.api.model.stock.PriceUpdate
 import com.example.finnapp.api.model.stock.Stock
 import com.example.finnapp.api.model.stock.StockPriceQuote
 import com.example.finnapp.navigation.navGraph.stockNavGraph.constants.RouteScreenStock
@@ -32,9 +35,16 @@ fun StockSymbolView(
         mutableStateOf(NetworkResult.Loading())
     }
 
+    var priceUpdate:NetworkResult<PriceUpdate> by
+    remember { mutableStateOf(NetworkResult.Loading()) }
+
     LaunchedEffect(key1 = Unit, block = {
         stockViewModel.getStockPriceQuote(item.symbol).onEach {
             stockPriceQuote.value = it
+        }.launchWhenCreated(lifecycleScope)
+
+        stockViewModel.getPriceUpdate(item.symbol).onEach {
+            priceUpdate = it
         }.launchWhenCreated(lifecycleScope)
     })
 
@@ -55,18 +65,43 @@ fun StockSymbolView(
                 modifier = Modifier.padding(5.dp)
             )
 
-            when(stockPriceQuote.value){
+            when(priceUpdate){
                 is NetworkResult.Loading -> {
                     CurrentPriceShimmer()
                 }
                 is NetworkResult.Error -> {
-                    BaseErrorView(message = stockPriceQuote.value.message.toString())
+                    when(stockPriceQuote.value){
+                        is NetworkResult.Loading -> {
+                            CurrentPriceShimmer()
+                        }
+                        is NetworkResult.Error -> {
+                            BaseErrorView(message = stockPriceQuote.value.message.toString())
+                        }
+                        is NetworkResult.Success -> {
+                            Text(
+                                text = "Last price: ${stockPriceQuote.value.data?.c}",
+                                modifier = Modifier.padding(5.dp)
+                            )
+                        }
+                    }
                 }
                 is NetworkResult.Success -> {
-                    Text(
-                        text = "Current price: ${stockPriceQuote.value.data?.c}",
-                        modifier = Modifier.padding(5.dp)
-                    )
+                    LazyRow(content = {
+                        item {
+                            Text(
+                                text = "Last price: ",
+                                modifier = Modifier.padding(5.dp)
+                            )
+                        }
+                        priceUpdate.data?.data?.let {
+                            items(it){ item ->
+                                Text(
+                                    text = item.p.toString(),
+                                    modifier = Modifier.padding(5.dp)
+                                )
+                            }
+                        }
+                    })
                 }
             }
         }

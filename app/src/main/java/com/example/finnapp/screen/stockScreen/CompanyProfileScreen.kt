@@ -1,6 +1,8 @@
 package com.example.finnapp.screen.stockScreen
 
 import android.annotation.SuppressLint
+import android.app.DatePickerDialog
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -13,6 +15,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -33,6 +36,7 @@ import com.example.finnapp.ui.theme.primaryBackground
 import com.example.finnapp.ui.theme.secondaryBackground
 import com.example.finnapp.utils.Converters.launchWhenCreated
 import kotlinx.coroutines.flow.onEach
+import java.util.*
 
 @ExperimentalMaterialApi
 @SuppressLint("FlowOperatorInvokedInComposition")
@@ -42,6 +46,7 @@ fun CompanyProfileScreen(
     navController: NavController,
     symbol:String
 ) {
+    val context = LocalContext.current
     val lifecycleScope = LocalLifecycleOwner.current.lifecycleScope
 
     val companyProfile:MutableState<NetworkResult<CompanyProfile>>
@@ -62,15 +67,48 @@ fun CompanyProfileScreen(
     var priceUpdate:NetworkResult<PriceUpdate> by
         remember { mutableStateOf(NetworkResult.Loading()) }
 
+    var dateDialogStart by remember { mutableStateOf("1900-01-01") }
+    var dateDialogEnd by remember { mutableStateOf("2100-01-01") }
+
+    val calendar = Calendar.getInstance()
+    val startDialog = DatePickerDialog.OnDateSetListener { _, year, monthOfYear, dayOfMonth ->
+        calendar.set(Calendar.YEAR, year)
+        calendar.set(Calendar.MONTH, monthOfYear)
+        calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth)
+        var month = monthOfYear.toString()
+        var day = dayOfMonth.toString()
+        if (month.length == 1){
+            month = "0$monthOfYear"
+        }
+
+        if (day.length == 1){
+            day = "0$dayOfMonth"
+        }
+
+        dateDialogStart = "$year-$month-$day"
+    }
+
+    val endDialog = DatePickerDialog.OnDateSetListener { _, year, monthOfYear, dayOfMonth ->
+        calendar.set(Calendar.YEAR, year)
+        calendar.set(Calendar.MONTH, monthOfYear)
+        calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth)
+        var month = monthOfYear.toString()
+        var day = dayOfMonth.toString()
+        if (month.length == 1){
+            month = "0$monthOfYear"
+        }
+
+        if (day.length == 1){
+            day = "0$dayOfMonth"
+        }
+
+        dateDialogEnd = "$year-$month-$day"
+    }
+
     LaunchedEffect(key1 = Unit, block = {
         stockViewModel.getCompanyProfile(symbol)
         stockViewModel.responseCompanyProfile.onEach {
             companyProfile.value = it
-        }.launchWhenCreated(lifecycleScope)
-
-        stockViewModel.getNewsCompany(symbol)
-        stockViewModel.responseNewsCompany.onEach {
-            newsCompany.value = it
         }.launchWhenCreated(lifecycleScope)
 
         stockViewModel.getStockMetric(symbol)
@@ -83,6 +121,21 @@ fun CompanyProfileScreen(
             stockQuarterlyIncome = it
         }.launchWhenCreated(lifecycleScope)
     })
+
+    LaunchedEffect(
+        key1 = dateDialogStart,
+        key2 = dateDialogEnd ,
+        block = {
+            stockViewModel.getNewsCompany(
+                symbol,
+                startData = dateDialogStart,
+                endData = dateDialogEnd
+            )
+            stockViewModel.responseNewsCompany.onEach {
+                newsCompany.value = it
+            }.launchWhenCreated(lifecycleScope)
+        }
+    )
 
     stockViewModel.getPriceUpdate(symbol).onEach {
         priceUpdate = it
@@ -179,7 +232,6 @@ fun CompanyProfileScreen(
                                             )
                                         }
                                     }
-
                                     Row {
                                         Text(
                                             text = "Рыночная капитализация: ",
@@ -203,49 +255,69 @@ fun CompanyProfileScreen(
                                             )
                                         }
                                     }
+                                }
+                            }
 
-                                    when(priceUpdate){
-                                        is NetworkResult.Error -> {
-                                            Column(
-                                                modifier = Modifier.fillMaxSize(),
-                                                horizontalAlignment = Alignment.CenterHorizontally,
-                                                verticalArrangement = Arrangement.Center
-                                            ) {
-                                                Text(
-                                                    text = priceUpdate.message.toString(),
-                                                    color = Color.Red
-                                                )
-                                            }
-                                        }
-                                        is NetworkResult.Loading -> {
-                                            Column(
-                                                modifier = Modifier.fillMaxSize(),
-                                                horizontalAlignment = Alignment.CenterHorizontally,
-                                                verticalArrangement = Arrangement.Center
-                                            ) {
-                                                CircularProgressIndicator(
-                                                    modifier = Modifier.padding(5.dp),
-                                                    color = secondaryBackground
-                                                )
-                                            }
-                                        }
-                                        is NetworkResult.Success -> {
-                                            Row(
-                                                modifier = Modifier.fillMaxWidth(),
-                                                horizontalArrangement = Arrangement.SpaceBetween
-                                            ) {
-                                                Text(
-                                                    text = "Update price",
-                                                    modifier = Modifier.padding(5.dp)
-                                                )
-
-                                                Text(
-                                                    text = priceUpdate.data?.data.toString(),
-                                                    modifier = Modifier.padding(5.dp)
-                                                )
-                                            }
+                            when(priceUpdate){
+                                is NetworkResult.Error -> {
+                                    item {
+                                        Column(
+                                            modifier = Modifier.fillMaxSize(),
+                                            horizontalAlignment = Alignment.CenterHorizontally,
+                                            verticalArrangement = Arrangement.Center
+                                        ) {
+                                            Text(
+                                                text = priceUpdate.message.toString(),
+                                                color = Color.Red
+                                            )
                                         }
                                     }
+                                }
+                                is NetworkResult.Loading -> {
+                                    item {
+                                        Column(
+                                            modifier = Modifier.fillMaxSize(),
+                                            horizontalAlignment = Alignment.CenterHorizontally,
+                                            verticalArrangement = Arrangement.Center
+                                        ) {
+                                            CircularProgressIndicator(
+                                                modifier = Modifier.padding(5.dp),
+                                                color = secondaryBackground
+                                            )
+                                        }
+                                    }
+                                }
+                                is NetworkResult.Success -> {
+                                    item {
+                                        Divider()
+                                        Column(
+                                            modifier = Modifier
+                                                .padding(5.dp)
+                                                .fillMaxWidth(),
+                                            horizontalAlignment = Alignment.Start
+                                        ) {
+                                            Text(text = "Last Price:")
+                                        }   
+                                    }
+                                    priceUpdate.data?.data?.let {
+                                        items(it) { item ->
+                                            Text(
+                                                text = item.p.toString(),
+                                                modifier = Modifier.padding(5.dp)
+                                            )
+                                        }
+                                    }
+                                    item {
+                                        Divider()
+                                    }
+                                }
+                            }
+
+                            item {
+                                Column(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
 
                                     when(stockPriceQuote){
                                         is NetworkResult.Loading -> {
@@ -708,6 +780,82 @@ fun CompanyProfileScreen(
                             }
                         }
                         is NetworkResult.Success -> {
+                            item {
+                                Text(
+                                    text = "News ${companyProfile.value.data?.name} :",
+                                    modifier = Modifier.padding(5.dp)
+                                )
+
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceEvenly
+                                ) {
+                                    Column(
+                                        verticalArrangement = Arrangement.Center,
+                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    ) {
+                                        Text(
+                                            text = "Start date news:",
+                                            modifier = Modifier.padding(5.dp)
+                                        )
+
+                                        OutlinedTextField(
+                                            modifier = Modifier
+                                                .padding(5.dp)
+                                                .width(180.dp)
+                                                .clickable {
+                                                    DatePickerDialog(context, startDialog,
+                                                        calendar.get(Calendar.YEAR),
+                                                        calendar.get(Calendar.MONTH),
+                                                        calendar.get(Calendar.DAY_OF_MONTH)
+                                                    ).show()
+                                                },
+                                            value = dateDialogStart,
+                                            onValueChange = { },
+                                            enabled = false,
+                                            shape = AbsoluteRoundedCornerShape(5.dp),
+                                            colors = TextFieldDefaults.textFieldColors(
+                                                focusedIndicatorColor = secondaryBackground,
+                                                backgroundColor = primaryBackground,
+                                                cursorColor = secondaryBackground
+                                            )
+                                        )
+                                    }
+
+                                    Column(
+                                        verticalArrangement = Arrangement.Center,
+                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    ) {
+                                        Text(
+                                            text = "End date news:",
+                                            modifier = Modifier.padding(5.dp)
+                                        )
+
+                                        OutlinedTextField(
+                                            modifier = Modifier
+                                                .padding(5.dp)
+                                                .width(180.dp)
+                                                .clickable {
+                                                    DatePickerDialog(context, endDialog,
+                                                        calendar.get(Calendar.YEAR),
+                                                        calendar.get(Calendar.MONTH),
+                                                        calendar.get(Calendar.DAY_OF_MONTH)
+                                                    ).show()
+                                                },
+                                            value = dateDialogEnd,
+                                            onValueChange = { },
+                                            enabled = false,
+                                            shape = AbsoluteRoundedCornerShape(5.dp),
+                                            colors = TextFieldDefaults.textFieldColors(
+                                                focusedIndicatorColor = secondaryBackground,
+                                                backgroundColor = primaryBackground,
+                                                cursorColor = secondaryBackground
+                                            )
+                                        )
+                                    }
+                                }
+                            }
+
                             items(newsCompany.value.data!!){ item ->
                                 Column {
                                     NewsExpandableCardView(

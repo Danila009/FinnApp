@@ -13,7 +13,11 @@ class ApiFinnRepository @Inject constructor(
     private val stockApi: FinnApi,
 ):BaseApiResponse() {
 
-    suspend fun getStockSymbol():NetworkResult<List<Stock>> = safeApiCall{stockApi.getStockSymbol()}
+    suspend fun getStockSymbol(
+        exchange:String
+    ):NetworkResult<List<Stock>> = safeApiCall{stockApi.getStockSymbol(
+        exchange = exchange
+    )}
 
     suspend fun getStockLookup(
         search:String
@@ -24,9 +28,13 @@ class ApiFinnRepository @Inject constructor(
     suspend fun getMarkerNews(category:String):NetworkResult<List<News>> = safeApiCall { stockApi.getNewsMarker(category) }
 
     suspend fun getNewsCompany(
-        symbol: String
+        symbol: String,
+        startData:String,
+        endData:String
     ):NetworkResult<List<News>> = safeApiCall { stockApi.getNewsCompany(
-        symbol = symbol
+        symbol = symbol,
+        fromDate = startData,
+        toDate = endData
     ) }
 
     suspend fun getCompanyProfile(symbol:String):NetworkResult<CompanyProfile> = safeApiCall { stockApi.getCompanyProfile(

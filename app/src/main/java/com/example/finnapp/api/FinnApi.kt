@@ -21,7 +21,7 @@ interface FinnApi {
 
     @GET(STOCK_SYMBOL_URL)
     suspend fun getStockSymbol(
-        @Query("exchange") exchange:String = "US",
+        @Query("exchange") exchange:String,
     ):Response<List<Stock>>
 
     @GET(STOCK_LOOKUP_URL)
@@ -37,8 +37,8 @@ interface FinnApi {
     @GET(NEWS_COMPANY_URL)
     suspend fun getNewsCompany(
         @Query("symbol") symbol:String,
-        @Query("from") fromDate:String = "1900-01-01",
-        @Query("to") toDate:String = "2100-01-01"
+        @Query("from") fromDate:String,
+        @Query("to") toDate:String
     ):Response<List<News>>
 
     @GET(COMPANY_PROFILE_URL)
@@ -63,6 +63,4 @@ interface FinnApi {
 
     @GET(COVID_19_URL)
     suspend fun getCovid19():Response<List<Covid19>>
-
-
 }

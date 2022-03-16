@@ -56,6 +56,14 @@ fun StockScreen(
 
     var refreshing by remember { mutableStateOf(false) }
 
+    val menuExpanded = remember { mutableStateOf(false) }
+
+    val exchange = remember { mutableStateOf("US") }
+
+    val exchanges = listOf(
+        "US","BO","HK", "CA", "CN", "AX", "AT"
+    )
+
     stockViewModel.responseStockSymbol.onEach {
         stockSymbol.value = it
     }.launchWhenCreated(lifecycleScope)
@@ -65,7 +73,7 @@ fun StockScreen(
     }.launchWhenCreated(lifecycleScope)
 
     if (refreshing){
-        stockViewModel.getStockSymbol()
+        stockViewModel.getStockSymbol(exchange = exchange.value)
         stockViewModel.getStockLookup(search = search.value)
         scope.launch {
             delay(1000L)
@@ -77,8 +85,8 @@ fun StockScreen(
         }
     }
 
-    LaunchedEffect(key1 = Unit, block = {
-        stockViewModel.getStockSymbol()
+    LaunchedEffect(key1 = exchange.value, block = {
+        stockViewModel.getStockSymbol(exchange = exchange.value)
     })
 
     LaunchedEffect(key1 = search.value, block = {
@@ -96,10 +104,27 @@ fun StockScreen(
                     )
                 },
                 actions = {
-                    TextButton(onClick = { /*TODO*/ }) {
+                    TextButton(onClick = { menuExpanded.value = true }) {
                         Text(
-                            text = "USD",
+                            text = exchange.value,
                             color = secondaryBackground
+                        )
+                    }
+                    Column {
+                        DropdownMenu(
+                            expanded = menuExpanded.value,
+                            onDismissRequest = { menuExpanded.value = false },
+                            content = {
+                                exchanges.forEach { item ->
+                                    DropdownMenuItem(onClick = {
+                                        menuExpanded.value = false
+                                        stockSymbol.value = NetworkResult.Loading()
+                                        exchange.value = item
+                                    }) {
+                                        Text(text = item)
+                                    }
+                                }
+                            }
                         )
                     }
                 }, navigationIcon = {

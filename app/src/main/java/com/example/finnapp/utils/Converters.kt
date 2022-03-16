@@ -1,6 +1,8 @@
 package com.example.finnapp.utils
 
 import androidx.lifecycle.LifecycleCoroutineScope
+import com.example.finnapp.api.model.stock.PriceUpdate
+import com.google.gson.Gson
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.serialization.decodeFromString
@@ -24,6 +26,6 @@ object Converters {
     }
 
     inline fun <reified T> decodeFromString (string: String):T{
-        return Json.decodeFromString(string)
+        return Gson().fromJson(string, T::class.java)
     }
 }

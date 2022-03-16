@@ -7,6 +7,7 @@ import io.reactivex.disposables.Disposable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -19,7 +20,7 @@ object SocketListenerUtil{
 
     private var mPostPayload: String = ""
 
-    var mResponseStockPriceQuote: String = ""
+    var mResponseStockPriceQuote = MutableStateFlow("")
 
     var mWebSocket: WebSocket? = null
 
@@ -44,13 +45,13 @@ object SocketListenerUtil{
         }
         mDisposable = Observable.interval(0, 3, TimeUnit.SECONDS)
             .subscribe {
-                if (TextUtils.equals(mPostPayload, mResponseStockPriceQuote)) {
+                if (TextUtils.equals(mPostPayload, mResponseStockPriceQuote.value)) {
                     mPostPayload = System.currentTimeMillis().toString()
                     mPostPayload = System.currentTimeMillis().toString()
                     sendMessageDetail(mPostPayload)
                 } else {
                     CoroutineScope(Dispatchers.IO).launch {
-                        delay(6000000L)
+                        delay(1000000L)
                         connect()
                     }
                 }
@@ -60,7 +61,7 @@ object SocketListenerUtil{
 
     fun clear() {
         mPostPayload = ""
-        mResponseStockPriceQuote = ""
+        mResponseStockPriceQuote.value = ""
         if (mDisposable != null) {
             mDisposable?.dispose()
             mDisposable = null

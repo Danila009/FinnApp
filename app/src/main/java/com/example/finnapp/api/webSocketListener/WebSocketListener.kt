@@ -22,7 +22,7 @@ class WebSocketListener(
     override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
         Log.d("WebSocketListener:", "onClosed: $code / $reason")
         CoroutineScope(Dispatchers.Main).launch {
-            delay(6000000L)
+            delay(1000000L)
             SocketListenerUtil.connect()
         }
     }
@@ -30,20 +30,20 @@ class WebSocketListener(
     override fun onClosing(webSocket: WebSocket, code: Int, reason: String) {
         Log.d("WebSocketListener:", "onClosing: $code / $reason")
         CoroutineScope(Dispatchers.Main).launch {
-            delay(6000000L)
+            delay(1000000L)
             SocketListenerUtil.connect()
         }
     }
 
     override fun onMessage(webSocket: WebSocket, text: String) {
         Log.d("WebSocketListener:", "onMessage: $text")
-        SocketListenerUtil.mResponseStockPriceQuote = text
+        SocketListenerUtil.mResponseStockPriceQuote.value = text
     }
 
     override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
         Log.d("WebSocketListener:", "onFailure:" + t.message)
         CoroutineScope(Dispatchers.Main).launch {
-            delay(6000000L)
+            delay(1000000L)
             SocketListenerUtil.connect()
         }
     }
