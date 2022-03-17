@@ -94,7 +94,11 @@ class StockViewModel @Inject constructor(
                     val stockPriceQuote = Converters.decodeFromString<PriceUpdate>(
                         it
                     )
-                    responsePriceUpdate.value = NetworkResult.Success(stockPriceQuote)
+                    if (stockPriceQuote.data == null){
+                        responsePriceUpdate.value = NetworkResult.Error("")
+                    }else{
+                        responsePriceUpdate.value = NetworkResult.Success(stockPriceQuote)
+                    }
                 }
             }catch (e:Exception){
                 responsePriceUpdate.value = NetworkResult.Error(e.toString())

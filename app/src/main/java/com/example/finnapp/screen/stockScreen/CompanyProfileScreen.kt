@@ -30,10 +30,16 @@ import com.example.finnapp.api.model.news.News
 import com.example.finnapp.api.model.stock.*
 import com.example.finnapp.navigation.navGraph.stockNavGraph.constants.RouteScreenStock
 import com.example.finnapp.screen.newsScreen.view.NewsExpandableCardView
+import com.example.finnapp.screen.stockScreen.view.companyProfileView.NewsView
 import com.example.finnapp.screen.stockScreen.viewModel.StockViewModel
+import com.example.finnapp.screen.view.BaseErrorImage
+import com.example.finnapp.screen.view.BaseErrorView
+import com.example.finnapp.screen.view.ErrorNoInternet
+import com.example.finnapp.screen.view.ServerError
 import com.example.finnapp.screen.view.animation.shimmer.ImageShimmer
 import com.example.finnapp.ui.theme.primaryBackground
 import com.example.finnapp.ui.theme.secondaryBackground
+import com.example.finnapp.utils.Constants
 import com.example.finnapp.utils.Converters.launchWhenCreated
 import kotlinx.coroutines.flow.onEach
 import java.util.*
@@ -192,15 +198,26 @@ fun CompanyProfileScreen(
                         }
                         is NetworkResult.Error -> {
                             item {
-                                Column(
-                                    modifier = Modifier.fillMaxSize(),
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.Center
-                                ) {
-                                    Text(
-                                        text = companyProfile.value.message.toString(),
-                                        color = Color.Red
-                                    )
+                                val i = companyProfile.value.message.toString()
+                                when {
+                                    i == Constants.ERROR_NO_INTERNET -> {
+                                        ErrorNoInternet()
+                                    }
+                                    i.contains("4") -> {
+                                        ServerError(
+                                            message = i
+                                        )
+                                    }
+                                    i.contains("5") -> {
+                                        ServerError(
+                                            message = i
+                                        )
+                                    }
+                                    else -> {
+                                        BaseErrorImage(
+                                            message = i
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -288,23 +305,26 @@ fun CompanyProfileScreen(
                                     }
                                 }
                                 is NetworkResult.Success -> {
-                                    item {
-                                        Divider()
-                                        Column(
-                                            modifier = Modifier
-                                                .padding(5.dp)
-                                                .fillMaxWidth(),
-                                            horizontalAlignment = Alignment.Start
-                                        ) {
-                                            Text(text = "Last Price:")
-                                        }   
-                                    }
                                     priceUpdate.data?.data?.let {
-                                        items(it) { item ->
-                                            Text(
-                                                text = item.p.toString(),
-                                                modifier = Modifier.padding(5.dp)
-                                            )
+                                        item {
+                                            Divider()
+                                            Column(
+                                                modifier = Modifier
+                                                    .padding(5.dp)
+                                                    .fillMaxWidth(),
+                                                horizontalAlignment = Alignment.Start
+                                            ) {
+                                                Text(text = "Last Price:")
+                                            }
+
+                                            LazyRow(content = {
+                                                items(it) { item ->
+                                                    Text(
+                                                        text = item.p.toString(),
+                                                        modifier = Modifier.padding(5.dp)
+                                                    )
+                                                }
+                                            })
                                         }
                                     }
                                     item {
@@ -781,79 +801,14 @@ fun CompanyProfileScreen(
                         }
                         is NetworkResult.Success -> {
                             item {
-                                Text(
-                                    text = "News ${companyProfile.value.data?.name} :",
-                                    modifier = Modifier.padding(5.dp)
+                                NewsView(
+                                    companyProfile = companyProfile.value,
+                                    startDialog = startDialog,
+                                    endDialog = endDialog,
+                                    dateDialogStart = dateDialogStart,
+                                    dateDialogEnd = dateDialogEnd,
+                                    calendar = calendar
                                 )
-
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceEvenly
-                                ) {
-                                    Column(
-                                        verticalArrangement = Arrangement.Center,
-                                        horizontalAlignment = Alignment.CenterHorizontally
-                                    ) {
-                                        Text(
-                                            text = "Start date news:",
-                                            modifier = Modifier.padding(5.dp)
-                                        )
-
-                                        OutlinedTextField(
-                                            modifier = Modifier
-                                                .padding(5.dp)
-                                                .width(180.dp)
-                                                .clickable {
-                                                    DatePickerDialog(context, startDialog,
-                                                        calendar.get(Calendar.YEAR),
-                                                        calendar.get(Calendar.MONTH),
-                                                        calendar.get(Calendar.DAY_OF_MONTH)
-                                                    ).show()
-                                                },
-                                            value = dateDialogStart,
-                                            onValueChange = { },
-                                            enabled = false,
-                                            shape = AbsoluteRoundedCornerShape(5.dp),
-                                            colors = TextFieldDefaults.textFieldColors(
-                                                focusedIndicatorColor = secondaryBackground,
-                                                backgroundColor = primaryBackground,
-                                                cursorColor = secondaryBackground
-                                            )
-                                        )
-                                    }
-
-                                    Column(
-                                        verticalArrangement = Arrangement.Center,
-                                        horizontalAlignment = Alignment.CenterHorizontally
-                                    ) {
-                                        Text(
-                                            text = "End date news:",
-                                            modifier = Modifier.padding(5.dp)
-                                        )
-
-                                        OutlinedTextField(
-                                            modifier = Modifier
-                                                .padding(5.dp)
-                                                .width(180.dp)
-                                                .clickable {
-                                                    DatePickerDialog(context, endDialog,
-                                                        calendar.get(Calendar.YEAR),
-                                                        calendar.get(Calendar.MONTH),
-                                                        calendar.get(Calendar.DAY_OF_MONTH)
-                                                    ).show()
-                                                },
-                                            value = dateDialogEnd,
-                                            onValueChange = { },
-                                            enabled = false,
-                                            shape = AbsoluteRoundedCornerShape(5.dp),
-                                            colors = TextFieldDefaults.textFieldColors(
-                                                focusedIndicatorColor = secondaryBackground,
-                                                backgroundColor = primaryBackground,
-                                                cursorColor = secondaryBackground
-                                            )
-                                        )
-                                    }
-                                }
                             }
 
                             items(newsCompany.value.data!!){ item ->

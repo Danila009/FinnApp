@@ -14,10 +14,14 @@ import com.example.finnapp.api.NetworkResult
 import com.example.finnapp.api.model.news.News
 import com.example.finnapp.screen.newsScreen.view.NewsExpandableCardView
 import com.example.finnapp.screen.newsScreen.viewModel.NewsViewModel
+import com.example.finnapp.screen.view.BaseErrorImage
 import com.example.finnapp.screen.view.BaseErrorView
+import com.example.finnapp.screen.view.ErrorNoInternet
+import com.example.finnapp.screen.view.ServerError
 import com.example.finnapp.screen.view.animation.shimmer.BaseListShimmer
 import com.example.finnapp.ui.theme.primaryBackground
 import com.example.finnapp.ui.theme.secondaryBackground
+import com.example.finnapp.utils.Constants
 import com.example.finnapp.utils.Converters.launchWhenCreated
 import kotlinx.coroutines.flow.onEach
 
@@ -134,7 +138,27 @@ fun NewsScreen(
                 }
                 is NetworkResult.Error -> {
                     item {
-                        BaseErrorView(message = news.value.message.toString())
+                        val i = news.value.message.toString()
+                        when {
+                            i == Constants.ERROR_NO_INTERNET -> {
+                                ErrorNoInternet()
+                            }
+                            i.contains("4") -> {
+                                ServerError(
+                                    message = i
+                                )
+                            }
+                            i.contains("5") -> {
+                                ServerError(
+                                    message = i
+                                )
+                            }
+                            else -> {
+                                BaseErrorImage(
+                                    message = i
+                                )
+                            }
+                        }
                     }
                 }
                 is NetworkResult.Success -> {

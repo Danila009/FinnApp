@@ -93,10 +93,11 @@ fun StockLookupView(
                                 modifier = Modifier.padding(5.dp)
                             )
                         }
-                        priceUpdate.data?.data?.let {
-                            items(it){ item ->
+                        priceUpdate.data?.data?.let { item ->
+                            val i = item.lastIndex
+                            item {
                                 Text(
-                                    text = item.p.toString(),
+                                    text = "${item[i].p}$",
                                     modifier = Modifier.padding(5.dp)
                                 )
                             }

@@ -29,9 +29,13 @@ import com.example.finnapp.screen.stockScreen.view.StockLookupView
 import com.example.finnapp.screen.stockScreen.view.StockSymbolView
 import com.example.finnapp.screen.view.animation.shimmer.BaseListShimmer
 import com.example.finnapp.screen.stockScreen.viewModel.StockViewModel
+import com.example.finnapp.screen.view.BaseErrorImage
 import com.example.finnapp.screen.view.BaseErrorView
+import com.example.finnapp.screen.view.ErrorNoInternet
+import com.example.finnapp.screen.view.ServerError
 import com.example.finnapp.ui.theme.primaryBackground
 import com.example.finnapp.ui.theme.secondaryBackground
+import com.example.finnapp.utils.Constants.ERROR_NO_INTERNET
 import com.example.finnapp.utils.Converters.launchWhenCreated
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
@@ -162,9 +166,27 @@ fun StockScreen(
                                 }
                                 is NetworkResult.Error -> {
                                     item {
-                                        BaseErrorView(
-                                            message = stockSymbol.value.message.toString()
-                                        )
+                                        val i = stockSymbol.value.message.toString()
+                                        when {
+                                            i == ERROR_NO_INTERNET -> {
+                                                ErrorNoInternet()
+                                            }
+                                            i.contains("4") -> {
+                                                ServerError(
+                                                    message = i
+                                                )
+                                            }
+                                            i.contains("5") -> {
+                                                ServerError(
+                                                    message = i
+                                                )
+                                            }
+                                            else -> {
+                                                BaseErrorImage(
+                                                    message = i
+                                                )
+                                            }
+                                        }
                                     }
                                 }
                                 is NetworkResult.Success -> {
@@ -195,7 +217,27 @@ fun StockScreen(
                                 }
                                 is NetworkResult.Error -> {
                                     item {
-                                        BaseErrorView(message = stockLookup.value.message.toString())
+                                        val i = stockLookup.value.message.toString()
+                                        when {
+                                            i == ERROR_NO_INTERNET -> {
+                                                ErrorNoInternet()
+                                            }
+                                            i.contains("4") -> {
+                                                ServerError(
+                                                    message = i
+                                                )
+                                            }
+                                            i.contains("5") -> {
+                                                ServerError(
+                                                    message = i
+                                                )
+                                            }
+                                            else -> {
+                                                BaseErrorImage(
+                                                    message = i
+                                                )
+                                            }
+                                        }
                                     }
                                 }
                                 is NetworkResult.Success -> {

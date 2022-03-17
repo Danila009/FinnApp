@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Divider
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
@@ -93,10 +92,11 @@ fun StockSymbolView(
                                 modifier = Modifier.padding(5.dp)
                             )
                         }
-                        priceUpdate.data?.data?.let {
-                            items(it){ item ->
+                        priceUpdate.data?.data?.let { item ->
+                            val i = item.lastIndex
+                            item {
                                 Text(
-                                    text = item.p.toString(),
+                                    text = "${item[i].p}$",
                                     modifier = Modifier.padding(5.dp)
                                 )
                             }
