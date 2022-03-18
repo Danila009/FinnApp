@@ -1,5 +1,6 @@
 package com.example.finnapp.screen.stockScreen.viewModel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.finnapp.api.NetworkResult
@@ -84,20 +85,33 @@ class StockViewModel @Inject constructor(
         }
     }
 
-    fun getPriceUpdate(symbol: String):StateFlow<NetworkResult<PriceUpdate>>{
+    fun getPriceUpdate(symbol: List<String>){
+        viewModelScope.launch {
+            try {
+                SocketListenerUtil.connect(sendSymbol = symbol)
+            }catch (e:Exception){
+
+            }
+        }
+    }
+
+    fun getPriceUpdateItem(symbol: String):StateFlow<NetworkResult<PriceUpdate>>{
         val responsePriceUpdate: MutableStateFlow<NetworkResult<PriceUpdate>> =
             MutableStateFlow(NetworkResult.Loading())
         viewModelScope.launch {
             try {
-                SocketListenerUtil.connect(sendSymbol = symbol)
                 SocketListenerUtil.mResponseStockPriceQuote.collect{
                     val stockPriceQuote = Converters.decodeFromString<PriceUpdate>(
                         it
                     )
-                    if (stockPriceQuote.data == null){
-                        responsePriceUpdate.value = NetworkResult.Error("")
-                    }else{
-                        responsePriceUpdate.value = NetworkResult.Success(stockPriceQuote)
+                    stockPriceQuote.data?.forEach { priceUpdateData ->
+                        priceUpdateData.s?.let { string ->
+                            if (string == symbol){
+                                responsePriceUpdate.value = NetworkResult.Success(stockPriceQuote)
+                            }else{
+                                responsePriceUpdate.value = NetworkResult.Error("")
+                            }
+                        }
                     }
                 }
             }catch (e:Exception){

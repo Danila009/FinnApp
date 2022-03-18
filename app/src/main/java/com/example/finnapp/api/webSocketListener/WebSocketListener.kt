@@ -10,13 +10,15 @@ import okhttp3.WebSocket
 import okhttp3.WebSocketListener
 
 class WebSocketListener(
-    private val sendSymbol:String
+    private val sendSymbol:List<String>
 ):WebSocketListener() {
 
     override fun onOpen(webSocket: WebSocket, response: Response) {
-        webSocket.send("{\"type\":\"subscribe\",\"symbol\":\"AAPL\"}")
-        SocketListenerUtil.mWebSocket = webSocket
-        SocketListenerUtil.sendRepeatHeartMessage()
+        sendSymbol.forEach {
+            webSocket.send("{\"type\":\"subscribe\",\"symbol\":\"$it\"}")
+            SocketListenerUtil.mWebSocket = webSocket
+            SocketListenerUtil.sendRepeatHeartMessage()
+        }
     }
 
     override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {

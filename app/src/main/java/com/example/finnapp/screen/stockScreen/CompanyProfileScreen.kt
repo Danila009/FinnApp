@@ -2,7 +2,6 @@ package com.example.finnapp.screen.stockScreen
 
 import android.annotation.SuppressLint
 import android.app.DatePickerDialog
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -33,7 +32,6 @@ import com.example.finnapp.screen.newsScreen.view.NewsExpandableCardView
 import com.example.finnapp.screen.stockScreen.view.companyProfileView.NewsView
 import com.example.finnapp.screen.stockScreen.viewModel.StockViewModel
 import com.example.finnapp.screen.view.BaseErrorImage
-import com.example.finnapp.screen.view.BaseErrorView
 import com.example.finnapp.screen.view.ErrorNoInternet
 import com.example.finnapp.screen.view.ServerError
 import com.example.finnapp.screen.view.animation.shimmer.ImageShimmer
@@ -143,7 +141,7 @@ fun CompanyProfileScreen(
         }
     )
 
-    stockViewModel.getPriceUpdate(symbol).onEach {
+    stockViewModel.getPriceUpdateItem(symbol).onEach {
         priceUpdate = it
     }.launchWhenCreated(lifecycleScope)
 

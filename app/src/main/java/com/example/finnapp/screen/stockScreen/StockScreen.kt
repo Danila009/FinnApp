@@ -7,6 +7,7 @@ import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.*
 import androidx.compose.runtime.*
@@ -21,8 +22,10 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import com.example.finnapp.R
 import com.example.finnapp.api.NetworkResult
+import com.example.finnapp.api.model.stock.PriceUpdate
 import com.example.finnapp.api.model.stock.Stock
 import com.example.finnapp.api.model.stock.StockLookup
+import com.example.finnapp.api.model.stock.StockPriceQuote
 import com.example.finnapp.navigation.navGraph.covid19NavGraph.constants.RouteScreenGovid19
 import com.example.finnapp.screen.stockScreen.view.SearchView
 import com.example.finnapp.screen.stockScreen.view.StockLookupView
@@ -30,7 +33,6 @@ import com.example.finnapp.screen.stockScreen.view.StockSymbolView
 import com.example.finnapp.screen.view.animation.shimmer.BaseListShimmer
 import com.example.finnapp.screen.stockScreen.viewModel.StockViewModel
 import com.example.finnapp.screen.view.BaseErrorImage
-import com.example.finnapp.screen.view.BaseErrorView
 import com.example.finnapp.screen.view.ErrorNoInternet
 import com.example.finnapp.screen.view.ServerError
 import com.example.finnapp.ui.theme.primaryBackground
@@ -65,16 +67,63 @@ fun StockScreen(
     val exchange = remember { mutableStateOf("US") }
 
     val exchanges = listOf(
-        "US","BO","HK", "CA", "CN", "AX", "AT"
+        "US","BO","HK", "CA", "CN", "AX", "AT", "AS", "BA", "BC", "BR", "JK", "JO", "KQ", "HM", "V", "VN", "VS", "WA", "T", "SG"
     )
 
-    stockViewModel.responseStockSymbol.onEach {
-        stockSymbol.value = it
-    }.launchWhenCreated(lifecycleScope)
+    val testing = false
 
-    stockViewModel.responseStockLookup.onEach {
-        stockLookup.value = it
-    }.launchWhenCreated(lifecycleScope)
+    val a = listOf(
+        "AAPL",
+        "AMZN",
+        "MSFT",
+        "BINANCE:BTCUSDT",
+        "IC MARKETS:1"
+    )
+
+    LaunchedEffect(key1 = Unit, block = {
+        stockViewModel.responseStockSymbol.onEach {
+            stockSymbol.value = it
+        }.launchWhenCreated(lifecycleScope)
+
+        stockViewModel.responseStockLookup.onEach {
+            stockLookup.value = it
+        }.launchWhenCreated(lifecycleScope)
+    })
+
+    LaunchedEffect(
+        key1 = stockLookup.value,
+        key2 = stockSymbol.value,
+        block = {
+            if (testing){
+                val i = ArrayList<String>()
+                a.forEach {
+                    i.add(it)
+                }
+                stockViewModel.getPriceUpdate(
+                    symbol = i
+                )
+
+            }else{
+                if (search.value.isNotEmpty()){
+                    val i = ArrayList<String>()
+                    stockLookup.value.data?.result?.forEach {
+                        i.add(it.symbol.toString())
+                    }
+                    stockViewModel.getPriceUpdate(
+                        symbol = i
+                    )
+                }else{
+                    val i = ArrayList<String>()
+                    stockSymbol.value.data?.forEach {
+                        i.add(it.symbol)
+                    }
+                    stockViewModel.getPriceUpdate(
+                        symbol = i
+                    )
+                }
+            }
+        }
+    )
 
     if (refreshing){
         stockViewModel.getStockSymbol(exchange = exchange.value)
@@ -152,117 +201,134 @@ fun StockScreen(
                         refreshing = true
                     }
                 ) {
-                    AnimatedVisibility(
-                        visible = search.value.isEmpty(),
-                        enter = expandHorizontally(),
-                        exit = shrinkHorizontally()
-                    ) {
+                    if (testing){
                         LazyColumn(content = {
-                            when(stockSymbol.value){
-                                is NetworkResult.Loading -> {
-                                    items(30) {
-                                        BaseListShimmer()
+                            items(a) { item ->
+                                StockSymbolView(
+                                    stockViewModel = stockViewModel,
+                                    lifecycleScope = lifecycleScope,
+                                    navController = navController,
+                                    item = Stock(
+                                        displaySymbol = item,
+                                        symbol = item,
+                                        description = item
+                                    )
+                                )
+                            }
+                        })
+                    }else{
+                        AnimatedVisibility(
+                            visible = search.value.isEmpty(),
+                            enter = expandHorizontally(),
+                            exit = shrinkHorizontally()
+                        ) {
+                            LazyColumn(content = {
+                                when(stockSymbol.value){
+                                    is NetworkResult.Loading -> {
+                                        items(30) {
+                                            BaseListShimmer()
+                                        }
                                     }
-                                }
-                                is NetworkResult.Error -> {
-                                    item {
-                                        val i = stockSymbol.value.message.toString()
-                                        when {
-                                            i == ERROR_NO_INTERNET -> {
-                                                ErrorNoInternet()
-                                            }
-                                            i.contains("4") -> {
-                                                ServerError(
-                                                    message = i
-                                                )
-                                            }
-                                            i.contains("5") -> {
-                                                ServerError(
-                                                    message = i
-                                                )
-                                            }
-                                            else -> {
-                                                BaseErrorImage(
-                                                    message = i
-                                                )
+                                    is NetworkResult.Error -> {
+                                        item {
+                                            val i = stockSymbol.value.message.toString()
+                                            when {
+                                                i == ERROR_NO_INTERNET -> {
+                                                    ErrorNoInternet()
+                                                }
+                                                i.contains("4") -> {
+                                                    ServerError(
+                                                        message = i
+                                                    )
+                                                }
+                                                i.contains("5") -> {
+                                                    ServerError(
+                                                        message = i
+                                                    )
+                                                }
+                                                else -> {
+                                                    BaseErrorImage(
+                                                        message = i
+                                                    )
+                                                }
                                             }
                                         }
                                     }
-                                }
-                                is NetworkResult.Success -> {
-                                    items(stockSymbol.value.data!!){ item ->
-                                        StockSymbolView(
-                                            stockViewModel = stockViewModel,
-                                            lifecycleScope = lifecycleScope,
-                                            navController = navController,
-                                            item = item
-                                        )
-                                    }
-                                }
-                            }
-                        })
-                    }
-
-                    AnimatedVisibility(
-                        visible = search.value.isNotEmpty(),
-                        enter = expandHorizontally(),
-                        exit = shrinkHorizontally()
-                    ) {
-                        LazyColumn(content = {
-                            when(stockLookup.value){
-                                is NetworkResult.Loading -> {
-                                    items(30) {
-                                        BaseListShimmer()
-                                    }
-                                }
-                                is NetworkResult.Error -> {
-                                    item {
-                                        val i = stockLookup.value.message.toString()
-                                        when {
-                                            i == ERROR_NO_INTERNET -> {
-                                                ErrorNoInternet()
-                                            }
-                                            i.contains("4") -> {
-                                                ServerError(
-                                                    message = i
-                                                )
-                                            }
-                                            i.contains("5") -> {
-                                                ServerError(
-                                                    message = i
-                                                )
-                                            }
-                                            else -> {
-                                                BaseErrorImage(
-                                                    message = i
-                                                )
-                                            }
+                                    is NetworkResult.Success -> {
+                                        items(stockSymbol.value.data!!){ item ->
+                                            StockSymbolView(
+                                                stockViewModel = stockViewModel,
+                                                lifecycleScope = lifecycleScope,
+                                                navController = navController,
+                                                item = item
+                                            )
                                         }
                                     }
                                 }
-                                is NetworkResult.Success -> {
-                                    item {
-                                        Text(
-                                            text = "Result: ${stockLookup.value.data?.count}",
-                                            modifier = Modifier.padding(5.dp),
-                                            fontFamily = FontFamily.Cursive,
-                                            fontWeight = FontWeight.Bold,
-                                            color = secondaryBackground,
-                                            fontSize = 22.sp
-                                        )
-                                    }
+                            })
+                        }
 
-                                    items(stockLookup.value.data?.result!!){ item ->
-                                        StockLookupView(
-                                            stockViewModel = stockViewModel,
-                                            lifecycleScope = lifecycleScope,
-                                            navController = navController,
-                                            item = item
-                                        )
+                        AnimatedVisibility(
+                            visible = search.value.isNotEmpty(),
+                            enter = expandHorizontally(),
+                            exit = shrinkHorizontally()
+                        ) {
+                            LazyColumn(content = {
+                                when(stockLookup.value){
+                                    is NetworkResult.Loading -> {
+                                        items(30) {
+                                            BaseListShimmer()
+                                        }
+                                    }
+                                    is NetworkResult.Error -> {
+                                        item {
+                                            val i = stockLookup.value.message.toString()
+                                            when {
+                                                i == ERROR_NO_INTERNET -> {
+                                                    ErrorNoInternet()
+                                                }
+                                                i.contains("4") -> {
+                                                    ServerError(
+                                                        message = i
+                                                    )
+                                                }
+                                                i.contains("5") -> {
+                                                    ServerError(
+                                                        message = i
+                                                    )
+                                                }
+                                                else -> {
+                                                    BaseErrorImage(
+                                                        message = i
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    }
+                                    is NetworkResult.Success -> {
+                                        item {
+                                            Text(
+                                                text = "Result: ${stockLookup.value.data?.count}",
+                                                modifier = Modifier.padding(5.dp),
+                                                fontFamily = FontFamily.Cursive,
+                                                fontWeight = FontWeight.Bold,
+                                                color = secondaryBackground,
+                                                fontSize = 22.sp
+                                            )
+                                        }
+
+                                        items(stockLookup.value.data?.result!!){ item ->
+                                            StockLookupView(
+                                                stockViewModel = stockViewModel,
+                                                lifecycleScope = lifecycleScope,
+                                                navController = navController,
+                                                item = item
+                                            )
+                                        }
                                     }
                                 }
-                            }
-                        })
+                            })
+                        }
                     }
                 }
             }

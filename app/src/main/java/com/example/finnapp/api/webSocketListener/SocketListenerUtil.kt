@@ -25,7 +25,7 @@ object SocketListenerUtil{
     var mWebSocket: WebSocket? = null
 
     fun connect(
-        sendSymbol:String = ""
+        sendSymbol:List<String> = listOf()
     ) {
         val listener = WebSocketListener(
             sendSymbol = sendSymbol

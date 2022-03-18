@@ -4,5 +4,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class PriceUpdateData(
-    val p:Double? = null
+    val p:Double? = null,
+    val s:String? = null
 )

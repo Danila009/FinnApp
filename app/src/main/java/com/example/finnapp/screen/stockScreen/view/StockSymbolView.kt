@@ -41,8 +41,10 @@ fun StockSymbolView(
         stockViewModel.getStockPriceQuote(item.symbol).onEach {
             stockPriceQuote.value = it
         }.launchWhenCreated(lifecycleScope)
+    })
 
-        stockViewModel.getPriceUpdate(item.symbol).onEach {
+    LaunchedEffect(key1 = priceUpdate, block = {
+        stockViewModel.getPriceUpdateItem(item.symbol).onEach {
             priceUpdate = it
         }.launchWhenCreated(lifecycleScope)
     })

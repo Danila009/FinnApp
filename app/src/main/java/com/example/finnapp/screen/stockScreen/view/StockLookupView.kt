@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Divider
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
@@ -43,7 +42,7 @@ fun StockLookupView(
             stockPriceQuote.value = it
         }.launchWhenCreated(lifecycleScope)
 
-        stockViewModel.getPriceUpdate(item.symbol).onEach {
+        stockViewModel.getPriceUpdateItem(item.symbol).onEach {
             priceUpdate = it
         }.launchWhenCreated(lifecycleScope)
     })
