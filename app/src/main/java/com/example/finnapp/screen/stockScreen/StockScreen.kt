@@ -33,7 +33,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
-@SuppressLint("FlowOperatorInvokedInComposition", "CoroutineCreationDuringComposition")
+@SuppressLint("FlowOperatorInvokedInComposition", "CoroutineCreationDuringComposition",
+    "MutableCollectionMutableState")
 @Composable
 fun StockScreen(
     navController: NavController,
@@ -66,6 +67,8 @@ fun StockScreen(
         "IC MARKETS:1"
     )
 
+    val symbols = remember { mutableStateListOf("") }
+
     LaunchedEffect(key1 = Unit, block = {
         stockViewModel.responseStockSymbol.onEach {
             stockSymbol.value = it
@@ -77,34 +80,25 @@ fun StockScreen(
     })
 
     LaunchedEffect(
-        key1 = stockLookup.value,
-        key2 = stockSymbol.value,
+        key1 = symbols,
         block = {
             if (TESTING){
-                val i = ArrayList<String>()
+                symbols.removeRange(0,symbols.size)
                 a.forEach {
-                    i.add(it)
+                    symbols.add(it)
                 }
                 stockViewModel.getPriceUpdate(
-                    symbol = i
+                    symbol = symbols
                 )
 
             }else{
                 if (search.value.isNotEmpty()){
-                    val i = ArrayList<String>()
-                    stockLookup.value.data?.result?.forEach {
-                        i.add(it.symbol.toString())
-                    }
                     stockViewModel.getPriceUpdate(
-                        symbol = i
+                        symbol = symbols
                     )
                 }else{
-                    val i = ArrayList<String>()
-                    stockSymbol.value.data?.forEach {
-                        i.add(it.symbol)
-                    }
                     stockViewModel.getPriceUpdate(
-                        symbol = i
+                        symbol = symbols
                     )
                 }
             }
@@ -211,7 +205,8 @@ fun StockScreen(
                             lifecycleScope = lifecycleScope,
                             stockViewModel = stockViewModel,
                             search = search,
-                            stockSymbol = stockSymbol.value
+                            stockSymbol = stockSymbol.value,
+                            symbols = symbols
                         )
 
                         StockLookupView(
@@ -219,7 +214,8 @@ fun StockScreen(
                             lifecycleScope = lifecycleScope,
                             stockViewModel = stockViewModel,
                             search = search,
-                            stockLookup = stockLookup.value
+                            stockLookup = stockLookup.value,
+                            symbols = symbols
                         )
                     }
                 }

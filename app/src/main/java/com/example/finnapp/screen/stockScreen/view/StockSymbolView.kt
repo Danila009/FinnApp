@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.navigation.NavController
 import com.example.finnapp.api.NetworkResult
@@ -25,12 +26,14 @@ fun StockSymbolView(
     stockViewModel: StockViewModel,
     search: MutableState<String>,
     stockSymbol:NetworkResult<List<Stock>>,
+    symbols: SnapshotStateList<String>
 ) {
     AnimatedVisibility(
         visible = search.value.isEmpty(),
         enter = expandHorizontally(),
         exit = shrinkHorizontally()
     ) {
+        symbols.removeRange(0,symbols.size)
         LazyColumn(content = {
             when(stockSymbol){
                 is NetworkResult.Loading -> {
@@ -65,6 +68,7 @@ fun StockSymbolView(
                 }
                 is NetworkResult.Success -> {
                     items(stockSymbol.data!!){ item ->
+                        symbols.add(item.symbol)
                         StockSymbolItemView(
                             stockViewModel = stockViewModel,
                             lifecycleScope = lifecycleScope,

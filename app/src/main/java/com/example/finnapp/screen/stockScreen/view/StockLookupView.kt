@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -33,12 +34,14 @@ fun StockLookupView(
     stockViewModel:StockViewModel,
     search:MutableState<String>,
     stockLookup:NetworkResult<StockLookup>,
+    symbols: SnapshotStateList<String>
 ) {
     AnimatedVisibility(
         visible = search.value.isNotEmpty(),
         enter = expandHorizontally(),
         exit = shrinkHorizontally()
     ) {
+        symbols.removeRange(0,symbols.size)
         LazyColumn(content = {
             when(stockLookup){
                 is NetworkResult.Loading -> {
@@ -84,6 +87,7 @@ fun StockLookupView(
                     }
 
                     items(stockLookup.data?.result!!){ item ->
+                        symbols.add(item.symbol.toString())
                         StockLookupItemView(
                             stockViewModel = stockViewModel,
                             lifecycleScope = lifecycleScope,
