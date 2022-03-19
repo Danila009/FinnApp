@@ -20,11 +20,12 @@ import com.example.finnapp.navigation.navGraph.stockNavGraph.constants.RouteScre
 import com.example.finnapp.screen.stockScreen.view.animation.shimmer.CurrentPriceShimmer
 import com.example.finnapp.screen.stockScreen.viewModel.StockViewModel
 import com.example.finnapp.screen.view.BaseErrorView
+import com.example.finnapp.utils.Constants.TESTING
 import com.example.finnapp.utils.Converters.launchWhenCreated
 import kotlinx.coroutines.flow.onEach
 
 @Composable
-fun StockSymbolView(
+fun StockSymbolItemView(
     stockViewModel:StockViewModel,
     lifecycleScope:LifecycleCoroutineScope,
     navController:NavController,
@@ -54,11 +55,13 @@ fun StockSymbolView(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable {
-                    navController.navigate(
-                        RouteScreenStock.CompanyProfile.argument(
-                            symbol = item.symbol
+                    if (!TESTING){
+                        navController.navigate(
+                            RouteScreenStock.CompanyProfile.argument(
+                                symbol = item.symbol
+                            )
                         )
-                    )
+                    }
                 },
         ) {
             Text(
@@ -68,7 +71,20 @@ fun StockSymbolView(
 
             when(priceUpdate){
                 is NetworkResult.Loading -> {
-                    CurrentPriceShimmer()
+                    when(stockPriceQuote.value){
+                        is NetworkResult.Loading -> {
+                            CurrentPriceShimmer()
+                        }
+                        is NetworkResult.Error -> {
+                            BaseErrorView(message = stockPriceQuote.value.message.toString())
+                        }
+                        is NetworkResult.Success -> {
+                            Text(
+                                text = "Last price: ${stockPriceQuote.value.data?.c}",
+                                modifier = Modifier.padding(5.dp)
+                            )
+                        }
+                    }
                 }
                 is NetworkResult.Error -> {
                     when(stockPriceQuote.value){

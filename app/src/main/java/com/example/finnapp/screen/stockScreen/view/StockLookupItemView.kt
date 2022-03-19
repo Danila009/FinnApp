@@ -24,7 +24,7 @@ import com.example.finnapp.utils.Converters.launchWhenCreated
 import kotlinx.coroutines.flow.onEach
 
 @Composable
-fun StockLookupView(
+fun StockLookupItemView(
     stockViewModel:StockViewModel,
     lifecycleScope:LifecycleCoroutineScope,
     navController:NavController,

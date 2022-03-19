@@ -19,7 +19,6 @@ import com.example.finnapp.api.NetworkResult
 import com.example.finnapp.api.model.covid19.Covid19
 import com.example.finnapp.screen.covid19Screen.viewModel.CovidViewModel
 import com.example.finnapp.screen.view.BaseErrorImage
-import com.example.finnapp.screen.view.BaseErrorView
 import com.example.finnapp.screen.view.ErrorNoInternet
 import com.example.finnapp.screen.view.ServerError
 import com.example.finnapp.screen.view.animation.shimmer.BaseListShimmer

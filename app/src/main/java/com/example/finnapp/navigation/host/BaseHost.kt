@@ -21,6 +21,7 @@ import com.example.finnapp.navigation.navGraph.stockNavGraph.stockNavGraph
 import com.example.finnapp.navigation.navGraph.newsNavGraph.constants.RouteAndArgumentsNews
 import com.example.finnapp.navigation.navGraph.newsNavGraph.newsNavGraph
 import com.example.finnapp.navigation.navGraph.stockNavGraph.constants.RouteAndArgumentsStock.Route.STOCK_ROUTE
+import com.example.finnapp.utils.Constants.TESTING
 
 @ExperimentalMaterialApi
 @Composable
@@ -32,34 +33,36 @@ fun BaseHost(
 
     Scaffold(
         bottomBar = {
-            BottomNavigation(
-                backgroundColor = primaryBackground,
-                elevation = 8.dp
-            ) {
-                ButtonBarDate.values().forEach { item ->
-                    BottomNavigationItem(
-                        selected = idButtonBar.value == item,
-                        onClick = {
-                            idButtonBar.value = item
+            if (!TESTING){
+                BottomNavigation(
+                    backgroundColor = primaryBackground,
+                    elevation = 8.dp
+                ) {
+                    ButtonBarDate.values().forEach { item ->
+                        BottomNavigationItem(
+                            selected = idButtonBar.value == item,
+                            onClick = {
+                                idButtonBar.value = item
 
-                            when(idButtonBar.value){
-                                ButtonBarDate.Stock -> navHostController.navigate(STOCK_ROUTE)
-                                ButtonBarDate.News -> navHostController.navigate(
-                                    RouteAndArgumentsNews.Route.NEWS_ROUTE)
-                            }
-                        },
-                        label = {
-                            Text(text = item.name)
-                        },
-                        icon = {
-                            Icon(
-                                painter = painterResource(id = item.icon),
-                                contentDescription = item.name,
-                                modifier = Modifier.size(28.dp)
-                            )
-                        }, selectedContentColor = secondaryBackground,
-                        unselectedContentColor = Color.Gray
-                    )
+                                when(idButtonBar.value){
+                                    ButtonBarDate.Stock -> navHostController.navigate(STOCK_ROUTE)
+                                    ButtonBarDate.News -> navHostController.navigate(
+                                        RouteAndArgumentsNews.Route.NEWS_ROUTE)
+                                }
+                            },
+                            label = {
+                                Text(text = item.name)
+                            },
+                            icon = {
+                                Icon(
+                                    painter = painterResource(id = item.icon),
+                                    contentDescription = item.name,
+                                    modifier = Modifier.size(28.dp)
+                                )
+                            }, selectedContentColor = secondaryBackground,
+                            unselectedContentColor = Color.Gray
+                        )
+                    }
                 }
             }
         }

@@ -2,4 +2,4 @@
 
 :white_check_mark: Стоимость акций обновляеться при помощи web socket написанный на OkHttp Client.
 
-## Для удобства тестирование websocket в функции StockScreen строка 73 переменная testing замените значение на true.
+## Для удобства тестирование websocket в object Constants строка 4 переменная TESTING замените значение на true.
