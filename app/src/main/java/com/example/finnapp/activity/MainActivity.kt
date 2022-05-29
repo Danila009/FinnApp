@@ -13,10 +13,14 @@ import com.example.finnapp.ui.theme.FinnAppTheme
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Web socket connection
         SocketListenerUtil.connect()
 
         setContent {
+            //Base Theme
             FinnAppTheme {
+                //Base Nav Host
                 BaseHost(
                     navHostController = rememberNavController()
                 )

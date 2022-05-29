@@ -11,6 +11,7 @@
 - Kotlin
 - MVVM (Jetpack ViewModel + Flow)
 - Jetpack Compose
+- Jetpack Compose Navigation
 - Dagger
 - Coroutines
 - Retrofit
@@ -18,6 +19,12 @@
 - Kotlin Serialization
 - Compose Navigation
 - OkHttp
+- RxJava
+- Coil
+- Scarlet
+- Mockito
+- Espresso
+- Junit 5
 <br>
 
 ## License

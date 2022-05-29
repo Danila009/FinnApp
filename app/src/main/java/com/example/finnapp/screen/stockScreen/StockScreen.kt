@@ -9,6 +9,7 @@ import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.lifecycleScope
@@ -33,15 +34,15 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
-@SuppressLint("FlowOperatorInvokedInComposition", "CoroutineCreationDuringComposition",
-    "MutableCollectionMutableState")
+@SuppressLint("CoroutineCreationDuringComposition")
 @Composable
 fun StockScreen(
     navController: NavController,
-    stockViewModel: StockViewModel
+    stockViewModel: StockViewModel? = null
 ) {
     val lifecycleScope = LocalLifecycleOwner.current.lifecycleScope
     val scope = rememberCoroutineScope()
+
     val search = remember { mutableStateOf("") }
     val stockLookup:MutableState<NetworkResult<StockLookup>> =
         remember { mutableStateOf(NetworkResult.Loading()) }
@@ -56,10 +57,11 @@ fun StockScreen(
     val exchange = remember { mutableStateOf("US") }
 
     val exchanges = listOf(
-        "US","BO","HK", "CA", "CN", "AX", "AT", "AS", "BA", "BC", "BR", "JK", "JO", "KQ", "HM", "V", "VN", "VS", "WA", "T", "SG"
+        "US","BO","HK", "CA", "CN", "AX", "AT", "AS", "BA", "BC", "BR", "JK",
+        "JO", "KQ", "HM", "V", "VN", "VS", "WA", "T", "SG"
     )
 
-    val a = listOf(
+    val symbolTest = listOf(
         "AAPL",
         "AMZN",
         "MSFT",
@@ -70,13 +72,15 @@ fun StockScreen(
     val symbols = remember { mutableStateListOf("") }
 
     LaunchedEffect(key1 = Unit, block = {
-        stockViewModel.responseStockSymbol.onEach {
-            stockSymbol.value = it
-        }.launchWhenCreated(lifecycleScope)
+        stockViewModel?.let {
+            stockViewModel.responseStockSymbol.onEach {
+                stockSymbol.value = it
+            }.launchWhenCreated(lifecycleScope)
 
-        stockViewModel.responseStockLookup.onEach {
-            stockLookup.value = it
-        }.launchWhenCreated(lifecycleScope)
+            stockViewModel.responseStockLookup.onEach {
+                stockLookup.value = it
+            }.launchWhenCreated(lifecycleScope)
+        }
     })
 
     LaunchedEffect(
@@ -84,30 +88,38 @@ fun StockScreen(
         block = {
             if (TESTING){
                 symbols.removeRange(0,symbols.size)
-                a.forEach {
+                symbolTest.forEach {
                     symbols.add(it)
                 }
-                stockViewModel.getPriceUpdate(
-                    symbol = symbols
-                )
+                stockViewModel?.let {
+                    stockViewModel.getPriceUpdate(
+                        symbol = symbols
+                    )
+                }
 
             }else{
                 if (search.value.isNotEmpty()){
-                    stockViewModel.getPriceUpdate(
-                        symbol = symbols
-                    )
+                    stockViewModel?.let {
+                        stockViewModel.getPriceUpdate(
+                            symbol = symbols
+                        )
+                    }
                 }else{
-                    stockViewModel.getPriceUpdate(
-                        symbol = symbols
-                    )
+                    stockViewModel?.let {
+                        stockViewModel.getPriceUpdate(
+                            symbol = symbols
+                        )
+                    }
                 }
             }
         }
     )
 
     if (refreshing){
-        stockViewModel.getStockSymbol(exchange = exchange.value)
-        stockViewModel.getStockLookup(search = search.value)
+        stockViewModel?.let {
+            stockViewModel.getStockSymbol(exchange = exchange.value)
+            stockViewModel.getStockLookup(search = search.value)
+        }
         scope.launch {
             delay(1000L)
             if (
@@ -119,17 +131,22 @@ fun StockScreen(
     }
 
     LaunchedEffect(key1 = exchange.value, block = {
-        stockViewModel.getStockSymbol(exchange = exchange.value)
+        stockViewModel?.let {
+            stockViewModel.getStockSymbol(exchange = exchange.value)
+        }
     })
 
     LaunchedEffect(key1 = search.value, block = {
-        stockViewModel.getStockLookup(search = search.value)
+        stockViewModel?.let {
+            stockViewModel.getStockLookup(search = search.value)
+        }
     })
 
     Scaffold(
         topBar = {
             if (!TESTING){
                 TopAppBar(
+                    modifier = Modifier.testTag("BaseTopAppBar"),
                     backgroundColor = primaryBackground,
                     elevation = 8.dp,
                     title = {
@@ -138,7 +155,11 @@ fun StockScreen(
                         )
                     },
                     actions = {
-                        TextButton(onClick = { menuExpanded.value = true }) {
+                        // Exchanges Button open menu
+                        TextButton(
+                            onClick = { menuExpanded.value = true },
+                            modifier = Modifier.testTag("Text_Button_Open_Menu")
+                        ) {
                             Text(
                                 text = exchange.value,
                                 color = secondaryBackground
@@ -162,7 +183,10 @@ fun StockScreen(
                             )
                         }
                     }, navigationIcon = {
-                        IconButton(onClick = { navController.navigate(RouteScreenGovid19.Covid19Screen.route) }) {
+                        // Button open screen covid 19 information
+                        IconButton(onClick = {
+                            navController.navigate(RouteScreenGovid19.Covid19Screen.route)
+                        }) {
                             Image(
                                 painter = painterResource(id = R.drawable.covid),
                                 contentDescription = null
@@ -174,7 +198,9 @@ fun StockScreen(
         },
         content = {
             Surface(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .testTag("Base_Surface")
+                    .fillMaxSize(),
                 color = primaryBackground
             ) {
                 SwipeRefresh(
@@ -185,38 +211,41 @@ fun StockScreen(
                 ) {
                     if (TESTING){
                         LazyColumn(content = {
-                            items(a) { item ->
-                                StockSymbolItemView(
-                                    stockViewModel = stockViewModel,
-                                    lifecycleScope = lifecycleScope,
-                                    navController = navController,
-                                    item = Stock(
-                                        displaySymbol = item,
-                                        symbol = item,
-                                        description = item
+                            items(symbolTest) { item ->
+                                stockViewModel?.let {
+                                    StockSymbolItemView(
+                                        stockViewModel = stockViewModel,
+                                        lifecycleScope = lifecycleScope,
+                                        navController = navController,
+                                        item = Stock(
+                                            displaySymbol = item,
+                                            symbol = item,
+                                            description = item
+                                        )
                                     )
-                                )
+                                }
                             }
                         })
                     }else{
+                        stockViewModel?.let {
+                            StockSymbolView(
+                                navController = navController,
+                                lifecycleScope = lifecycleScope,
+                                stockViewModel = stockViewModel,
+                                search = search,
+                                stockSymbol = stockSymbol.value,
+                                symbols = symbols
+                            )
 
-                        StockSymbolView(
-                            navController = navController,
-                            lifecycleScope = lifecycleScope,
-                            stockViewModel = stockViewModel,
-                            search = search,
-                            stockSymbol = stockSymbol.value,
-                            symbols = symbols
-                        )
-
-                        StockLookupView(
-                            navController = navController,
-                            lifecycleScope = lifecycleScope,
-                            stockViewModel = stockViewModel,
-                            search = search,
-                            stockLookup = stockLookup.value,
-                            symbols = symbols
-                        )
+                            StockLookupView(
+                                navController = navController,
+                                lifecycleScope = lifecycleScope,
+                                stockViewModel = stockViewModel,
+                                search = search,
+                                stockLookup = stockLookup.value,
+                                symbols = symbols
+                            )
+                        }
                     }
                 }
             }

@@ -8,6 +8,8 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.example.finnapp.ui.theme.primaryBackground
@@ -18,6 +20,7 @@ fun SearchView(
     search:MutableState<String>,
 ) {
     TextField(
+        modifier = Modifier.testTag("SearchTextField"),
         value = search.value,
         onValueChange = {
             search.value = it

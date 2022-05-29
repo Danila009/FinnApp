@@ -35,7 +35,7 @@ fun StockLookupItemView(
     }
 
     var priceUpdate:NetworkResult<PriceUpdate> by
-    remember { mutableStateOf(NetworkResult.Loading()) }
+        remember { mutableStateOf(NetworkResult.Loading()) }
 
     LaunchedEffect(key1 = Unit, block = {
         stockViewModel.getStockPriceQuote(item.symbol!!).onEach {
@@ -52,6 +52,7 @@ fun StockLookupItemView(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable {
+                    // Open screen Company profile
                     navController.navigate(
                         RouteScreenStock.CompanyProfile.argument(
                             symbol = item.symbol!!
@@ -59,6 +60,7 @@ fun StockLookupItemView(
                     )
                 },
         ) {
+            // Stock Description
             Text(
                 text = item.description.toString(),
                 modifier = Modifier.padding(5.dp)
@@ -95,6 +97,7 @@ fun StockLookupItemView(
                         priceUpdate.data?.data?.let { item ->
                             val i = item.lastIndex
                             item {
+                                // Stock last price
                                 Text(
                                     text = "${item[i].p}$",
                                     modifier = Modifier.padding(5.dp)
